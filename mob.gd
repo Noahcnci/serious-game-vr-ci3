@@ -11,6 +11,26 @@ var is_boss := false
 
 # Emitted when the player jumped on the mob.
 signal squashed
+# Emitted on every non-lethal stomp (bosses tanking a hit).
+signal stomped
+
+# Ability speciale : "normal", "tank", "dasher", "jumper", "ghost".
+var ability := "normal"
+# Cible du dasher (pose par Main apres le spawn).
+var player: Node3D = null
+
+var _dir := Vector3.ZERO # direction de deplacement de base
+var _speed := 0.0 # vitesse de base (magnitude de velocity)
+
+var _ability_clock := 0.0
+var _dash_state := 0 # dasher : 0 repos, 1 telegraph, 2 dash
+var _dash_dir := Vector3.ZERO
+var _vy := 0.0 # vitesse verticale (jumper), integree a la main
+var _ghost := false
+var _ghost_blink := 0.0
+
+# Impulse given back to the player when stomping this mob (bosses bounce higher).
+var stomp_bounce := 14.0
 
 # Limites de l'arene (le centre du mob y reste confine).
 const ARENA_X := 12.0
@@ -20,9 +40,73 @@ var _squashed := false
 var _invulnerable := false
 
 
-func _physics_process(_delta):
+func _physics_process(delta):
+	_ability_clock += delta
+	match ability:
+		"dasher":
+			_update_dasher()
+		"jumper":
+			_update_jumper()
+		"ghost":
+			_update_ghost(delta)
+	# Integration verticale manuelle (jumper ; inerte pour les autres :
+	# _vy reste 0 et y reste a 0).
+	if _vy != 0.0 or position.y > 0.0:
+		_vy -= 30.0 * delta
+		position.y += _vy * delta
+		if position.y <= 0.0:
+			position.y = 0.0
+			_vy = 0.0
 	move_and_slide()
 	_clamp_to_arena()
+
+
+# Fonce sur le joueur par cycles : 2,2 s de marche, telegraph ralenti,
+# puis 0,45 s de sprint x3,5 vers la position du joueur.
+func _update_dasher() -> void:
+	if player == null or _squashed:
+		return
+	if _dash_state == 0:
+		velocity = _dir * _speed
+		if _ability_clock >= 2.2:
+			_ability_clock = 0.0
+			_dash_state = 1
+			velocity = _dir * _speed * 0.15 # telegraph : ralenti visible
+	elif _dash_state == 1:
+		if _ability_clock >= 0.35:
+			_ability_clock = 0.0
+			_dash_state = 2
+			_dash_dir = player.global_position - global_position
+			_dash_dir.y = 0.0
+			_dash_dir = _dash_dir.normalized()
+			velocity = _dash_dir * _speed * 3.5
+			$AnimationPlayer.speed_scale *= 2.0
+	elif _ability_clock >= 0.45:
+		_ability_clock = 0.0
+		_dash_state = 0
+		$AnimationPlayer.speed_scale = maxf(1.0, $AnimationPlayer.speed_scale / 2.0)
+		velocity = _dir * _speed
+
+
+# Saute toutes les 2,2 s (integration verticale manuelle, voir plus haut).
+func _update_jumper() -> void:
+	if _ability_clock >= 2.2 and position.y <= 0.01:
+		_ability_clock = 0.0
+		_vy = 9.0
+
+
+# Cycle 3 s : 1 s intangible (blink rapide), 2 s tangible.
+# Layer 2 coupe = aucune interaction (ni blesser, ni etre ecrase).
+func _update_ghost(delta: float) -> void:
+	var want_ghost: bool = fmod(_ability_clock, 3.0) < 1.0
+	if want_ghost != _ghost:
+		_ghost = want_ghost
+		set_collision_layer_value(2, not _ghost)
+	if _ghost:
+		_ghost_blink += delta
+		$Pivot.visible = fmod(_ghost_blink, 0.12) < 0.06
+	else:
+		$Pivot.visible = true
 
 
 func _clamp_to_arena() -> void:
@@ -69,6 +153,25 @@ func initialize(start_position, player_position):
 	velocity = velocity.rotated(Vector3.UP, rotation.y)
 
 	$AnimationPlayer.speed_scale = random_speed / min_speed
+	_dir = velocity.normalized()
+	_speed = velocity.length()
+
+
+# A appeler APRES initialize(). Aucun changement d'apparence (sauf tank) :
+# le dash, les sauts et le blink se voient en jeu.
+func setup_ability(a: String) -> void:
+	ability = a
+	match a:
+		"tank":
+			scale = Vector3.ONE * 1.7
+			hp = 2 # 2 stomps pour le tuer
+			_speed *= 0.6
+			velocity = _dir * _speed
+			$AnimationPlayer.speed_scale *= 0.6
+		"dasher", "jumper", "ghost":
+			pass
+		_:
+			ability = "normal"
 
 
 func squash():
@@ -84,6 +187,7 @@ func squash():
 	# Boss : encaisse le coup mais survit, bref moment d'invulnerabilite.
 	hp -= 1
 	_invulnerable = true
+	stomped.emit() # feedback immediat : hitmarker, popup HP, shake...
 	var pivot: Node3D = $Pivot
 	var tween := create_tween()
 	tween.tween_property(pivot, "scale", Vector3(1.35, 0.65, 1.35), 0.08)

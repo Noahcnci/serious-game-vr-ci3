@@ -12,18 +12,6 @@ size = Vector3(60, 2, 60)
 [sub_resource type="BoxMesh" id="BoxMesh_ground"]
 size = Vector3(60, 2, 60)
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_cylinder"]
-albedo_color = Color(0.635294, 0.211765, 0.0235294, 1)
-
-[sub_resource type="CylinderMesh" id="CylinderMesh_1"]
-material = SubResource("StandardMaterial3D_cylinder")
-radial_segments = 24
-rings = 1
-
-[sub_resource type="BoxMesh" id="BoxMesh_wall"]
-material = SubResource("StandardMaterial3D_cylinder")
-size = Vector3(1, 2, 1)
-
 [sub_resource type="Curve3D" id="Curve3D_spawn"]
 _data = {
 "points": PackedVector3Array(0, 0, 0, 0, 0, 0, 11, 0, -12, 0, 0, 0, 0, 0, 0, -11, 0, -12, 0, 0, 0, 0, 0, 0, -11, 0, 12, 0, 0, 0, 0, 0, 0, 11, 0, 12, 0, 0, 0, 0, 0, 0, 11, 0, -12),
@@ -65,41 +53,7 @@ projection = 1
 size = 19.0
 far = 100.0
 
-[node name="Cylinders" type="Node3D" parent="."]
-
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1, -12)
-mesh = SubResource("CylinderMesh_1")
-
-[node name="MeshInstance3D2" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 1, -12)
-mesh = SubResource("CylinderMesh_1")
-
-[node name="MeshInstance3D3" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 1, 12)
-mesh = SubResource("CylinderMesh_1")
-
-[node name="MeshInstance3D4" type="MeshInstance3D" parent="Cylinders"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 1, 12)
-mesh = SubResource("CylinderMesh_1")
-
-[node name="Walls" type="Node3D" parent="."]
-
-[node name="North" type="MeshInstance3D" parent="Walls"]
-transform = Transform3D(25.2, 0, 0, 0, 1, 0, 0, 0, 0.4, 0, 1, -13.2)
-mesh = SubResource("BoxMesh_wall")
-
-[node name="South" type="MeshInstance3D" parent="Walls"]
-transform = Transform3D(25.2, 0, 0, 0, 1, 0, 0, 0, 0.4, 0, 1, 13.2)
-mesh = SubResource("BoxMesh_wall")
-
-[node name="West" type="MeshInstance3D" parent="Walls"]
-transform = Transform3D(0.4, 0, 0, 0, 1, 0, 0, 0, 26.8, -12.2, 1, 0)
-mesh = SubResource("BoxMesh_wall")
-
-[node name="East" type="MeshInstance3D" parent="Walls"]
-transform = Transform3D(0.4, 0, 0, 0, 1, 0, 0, 0, 26.8, 12.2, 1, 0)
-mesh = SubResource("BoxMesh_wall")
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
 
 [node name="SpawnPath" type="Path3D" parent="."]
 curve = SubResource("Curve3D_spawn")
@@ -128,8 +82,21 @@ offset_top = 16.0
 offset_right = 140.0
 offset_bottom = 42.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 4
 text = "Score : 0"
 script = ExtResource("5")
+
+[node name="LivesLabel" type="Label" parent="UserInterface"]
+layout_mode = 0
+offset_left = 16.0
+offset_top = 44.0
+offset_right = 160.0
+offset_bottom = 70.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 4
+text = "Vies : 3"
 
 [node name="WaveLabel" type="Label" parent="UserInterface"]
 layout_mode = 0
@@ -138,6 +105,8 @@ offset_top = 16.0
 offset_right = 704.0
 offset_bottom = 42.0
 theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_constants/outline_size = 4
 text = "Vague 1"
 horizontal_alignment = 2
 
@@ -155,7 +124,9 @@ offset_right = 200.0
 offset_bottom = 30.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 10
 theme_override_font_sizes/font_size = 48
 text = "VAGUE 1"
 horizontal_alignment = 1
@@ -183,4 +154,5 @@ grow_vertical = 2
 text = "Appuyez sur Entrée pour réessayer."
 
 [connection signal="hit" from="Player" to="." method="_on_player_hit"]
+[connection signal="hurt" from="Player" to="." method="_on_player_hurt"]
 [connection signal="timeout" from="MobTimer" to="." method="_on_mob_timer_timeout"]
