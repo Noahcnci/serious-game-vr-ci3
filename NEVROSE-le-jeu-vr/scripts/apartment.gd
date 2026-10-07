@@ -17,6 +17,10 @@ const WALL_T := 0.15
 
 var containers: Array[InteractiveContainer] = []
 var _dose: Dose = null
+
+## Pilule actuellement active (null si aucune) — exposée pour la proximité.
+func get_dose() -> Dose:
+	return _dose
 var _spawn_spots: Array[Dictionary] = [] # {pos: Vector3, container: InteractiveContainer|null}
 var _insanity := 0.0
 
@@ -42,23 +46,38 @@ func _ready() -> void:
 # Matériaux : palette chaude "appart lambda", dérive malade en folie
 # ---------------------------------------------------------------------------
 func _make_materials() -> void:
-	_reg("mur", Color(0.72, 0.65, 0.56), Color(0.42, 0.52, 0.38))
-	_reg("mur2", Color(0.76, 0.70, 0.62), Color(0.45, 0.55, 0.40))
-	_reg("plafond", Color(0.80, 0.77, 0.72), Color(0.5, 0.55, 0.45), false)
-	_reg("sol", Color(0.42, 0.29, 0.20), Color(0.25, 0.22, 0.16), false)
-	_reg("meuble", Color(0.36, 0.42, 0.35), Color(0.28, 0.38, 0.26))
-	_reg("bois", Color(0.29, 0.21, 0.15), Color(0.2, 0.18, 0.12), false)
-	_reg("tissu", Color(0.48, 0.23, 0.23), Color(0.3, 0.2, 0.28), false)
-	_reg("tissu2", Color(0.69, 0.71, 0.74), Color(0.5, 0.55, 0.5), false)
-	_reg("metal", Color(0.54, 0.56, 0.59), Color(0.4, 0.45, 0.4), false)
+	# Textures procédurales (générées au démarrage, zéro asset importé).
+	var tex_mur := ProceduralTextures.plaster(Color(0.72, 0.65, 0.56))
+	var tex_mur2 := ProceduralTextures.plaster(Color(0.76, 0.70, 0.62), 256, 256, 13)
+	var tex_plafond := ProceduralTextures.plaster(Color(0.80, 0.77, 0.72), 256, 256, 29)
+	var tex_sol := ProceduralTextures.tiles(Color(0.42, 0.29, 0.20), 256, 256, 6)
+	var tex_meuble := ProceduralTextures.wood(Color(0.36, 0.42, 0.35), 256, 256, 51)
+	var tex_bois := ProceduralTextures.wood(Color(0.29, 0.21, 0.15), 256, 256, 21)
+	var tex_tissu := ProceduralTextures.fabric(Color(0.48, 0.23, 0.23), 128, 128, 33)
+	var tex_tissu2 := ProceduralTextures.fabric(Color(0.69, 0.71, 0.74), 128, 128, 77)
+	var tex_metal := ProceduralTextures.metal(Color(0.54, 0.56, 0.59))
+
+	_reg("mur", Color(0.72, 0.65, 0.56), Color(0.42, 0.52, 0.38), true, tex_mur)
+	_reg("mur2", Color(0.76, 0.70, 0.62), Color(0.45, 0.55, 0.40), true, tex_mur2)
+	_reg("plafond", Color(0.80, 0.77, 0.72), Color(0.5, 0.55, 0.45), false, tex_plafond)
+	_reg("sol", Color(0.42, 0.29, 0.20), Color(0.25, 0.22, 0.16), false, tex_sol)
+	_reg("meuble", Color(0.36, 0.42, 0.35), Color(0.28, 0.38, 0.26), true, tex_meuble)
+	_reg("bois", Color(0.29, 0.21, 0.15), Color(0.2, 0.18, 0.12), false, tex_bois)
+	_reg("tissu", Color(0.48, 0.23, 0.23), Color(0.3, 0.2, 0.28), false, tex_tissu)
+	_reg("tissu2", Color(0.69, 0.71, 0.74), Color(0.5, 0.55, 0.5), false, tex_tissu2)
+	_reg("metal", Color(0.54, 0.56, 0.59), Color(0.4, 0.45, 0.4), false, tex_metal)
 	_reg("noir", Color(0.04, 0.04, 0.05), Color(0.02, 0.03, 0.02), false)
 
 
-func _reg(key: String, calm: Color, sick: Color, breathes := true) -> void:
+func _reg(key: String, calm: Color, sick: Color, breathes := true, tex: Texture2D = null) -> void:
 	var m := StandardMaterial3D.new()
 	m.albedo_color = calm
 	m.roughness = 0.92
 	m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+	if tex != null:
+		m.albedo_texture = tex
+		# Texture non répétée par défaut : on active la répétition UV
+		m.uv1_scale = Vector3(2.0, 2.0, 2.0)
 	_mats[key] = m
 	if breathes:
 		_breathers.append({"mat": m, "calm": calm, "sick": sick})

@@ -36,6 +36,15 @@ const FOLIE_CRITIQUE := 88.0 # teinte critique + messages urgents
 @onready var left_hand: XRController3D = $XROrigin3D/LeftHand
 @onready var right_hand: XRController3D = $XROrigin3D/RightHand
 
+# Mains visibles (modèles low-poly godot-xr-tools) et corps FPV
+var _left_hand_mesh: Node3D = null
+var _right_hand_mesh: Node3D = null
+var _body: VRBody = null
+const HAND_SCENE_R := preload("res://assets/hands/Hand_low_R.gltf")
+const HAND_SCENE_L := preload("res://assets/hands/Hand_low_L.gltf")
+# Distance max pour interagir "au contact" (proximité) sans viser au rayon
+const PROXIMITY_RADIUS := 0.45
+
 # ---------------------------------------------------------------------------
 # État de partie
 # ---------------------------------------------------------------------------
@@ -101,6 +110,7 @@ func _ready() -> void:
 	left_hand.button_pressed.connect(_on_left_button_pressed)
 	_init_openxr()
 	_build_world()
+	_build_player_body()
 	_build_hud()
 	_register_debug_inputs()
 	_spawn_dose()
@@ -161,6 +171,24 @@ func _build_world() -> void:
 	add_child(apartment)
 	apartment.build()
 	_log("WORLD", "appartement construit : %d nœuds" % apartment.get_child_count())
+
+
+# ---------------------------------------------------------------------------
+# Joueur : mains VR (modèles low-poly) + corps FPV visible en baissant les yeux.
+# Les mains sont attachées aux XRController3D ; le corps à l'origine XR.
+# ---------------------------------------------------------------------------
+func _build_player_body() -> void:
+	_right_hand_mesh = HAND_SCENE_R.instantiate()
+	right_hand.add_child(_right_hand_mesh)
+	_left_hand_mesh = HAND_SCENE_L.instantiate()
+	left_hand.add_child(_left_hand_mesh)
+	_log("WORLD", "mains VR low-poly attachées (gauche + droite)")
+
+	_body = VRBody.new()
+	_body.name = "PlayerBody"
+	xr_origin.add_child(_body)
+	_body.setup(xr_camera)
+	_log("WORLD", "corps FPV ajouté (visible en baissant les yeux)")
 
 
 # ---------------------------------------------------------------------------
@@ -376,10 +404,38 @@ func interact() -> void:
 	if game_over:
 		_restart()
 		return
-	if _pointed == null:
-		return
-	if _pointed.has_method(&"interact"):
+	# 1) Objet pointé au rayon (priorité) → déjà résolu dans _pointed.
+	if _pointed != null and is_instance_valid(_pointed) and _pointed.has_method(&"interact"):
 		_pointed.interact()
+		return
+	# 2) Proximité : on cherche un conteneur/pilule interactif près de la main.
+	var near := _nearest_interactable()
+	if near != null:
+		near.interact()
+
+
+# Retourne l'interactable le plus proche d'une main (gâchette), dans un rayon
+# PROXIMITY_RADIUS. Utilisé quand le rayon ne vise rien mais qu'on est au contact.
+func _nearest_interactable() -> Node:
+	var best: Node = null
+	var best_d := PROXIMITY_RADIUS
+	for hand in [right_hand, left_hand]:
+		var origin: Vector3 = hand.global_transform.origin
+		for c in apartment.containers:
+			if not (c.has_method(&"interact")):
+				continue
+			var d: float = origin.distance_to(c.global_transform.origin)
+			if d < best_d:
+				best_d = d
+				best = c
+		# La pilule en surface (pas dans un conteneur)
+		var dose: Node = apartment.get_dose()
+		if dose != null and is_instance_valid(dose) and dose.has_method(&"interact"):
+			var dd: float = origin.distance_to(dose.global_transform.origin)
+			if dd < best_d:
+				best_d = dd
+				best = dose
+	return best
 
 
 # Appelé par la pilule quand elle est absorbée (GDD §5.1).
@@ -471,11 +527,16 @@ func _pulse_haptics() -> void:
 # Signaux manettes VR (gâchettes)
 # ---------------------------------------------------------------------------
 func _on_right_button_pressed(action_name: String) -> void:
+	# Gâchette index droite = interagir (ouvrir / prendre), au rayon ou au contact.
 	if action_name == &"trigger":
 		interact()
 
 
 func _on_left_button_pressed(action_name: String) -> void:
+	# Gâchette index gauche = aussi interagir (symétrique, confort ambidextre).
+	if action_name == &"trigger":
+		interact()
+		return
 	# Le menu pa gauche sert de reset rapide si le joueur est coincé.
 	if action_name == &"menu_button" and game_over:
 		_restart()
