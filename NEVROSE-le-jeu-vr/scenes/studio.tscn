@@ -1,0 +1,193 @@
+[gd_scene load_steps=8 format=3 uid="uid://nevrose_studio_editable"]
+
+[sub_resource type="StandardMaterial3D" id="mat_sol"]
+albedo_color = Color(0.42, 0.29, 0.2, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_mur"]
+albedo_color = Color(0.72, 0.65, 0.56, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_mur2"]
+albedo_color = Color(0.76, 0.7, 0.62, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_plafond"]
+albedo_color = Color(0.8, 0.77, 0.72, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_noir"]
+albedo_color = Color(0.04, 0.04, 0.05, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_box"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxShape3D" id="shape_box"]
+size = Vector3(1, 1, 1)
+
+[node name="Studio" type="Node3D"]
+
+; --- SOL ---------------------------------------------------------------------
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.05, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_sol")
+scale = Vector3(6.6, 0.1, 5.1)
+
+[node name="Collision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("shape_box")
+scale = Vector3(6.6, 0.1, 5.1)
+
+; --- PLAFOND -----------------------------------------------------------------
+[node name="Ceiling" type="StaticBody3D" parent="."]
+position = Vector3(0, 2.75, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Ceiling"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_plafond")
+scale = Vector3(6.6, 0.1, 5.1)
+
+[node name="Collision" type="CollisionShape3D" parent="Ceiling"]
+shape = SubResource("shape_box")
+scale = Vector3(6.6, 0.1, 5.1)
+
+; --- MUR NORD (cuisine, plein) ------------------------------------------------
+[node name="WallN" type="StaticBody3D" parent="."]
+position = Vector3(0, 1.35, -2.325)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallN"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur")
+scale = Vector3(6.6, 2.7, 0.15)
+
+[node name="Collision" type="CollisionShape3D" parent="WallN"]
+shape = SubResource("shape_box")
+scale = Vector3(6.6, 2.7, 0.15)
+
+; --- MUR OUEST (plein) --------------------------------------------------------
+[node name="WallW" type="StaticBody3D" parent="."]
+position = Vector3(-3.075, 1.35, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallW"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur2")
+scale = Vector3(0.15, 2.7, 5.1)
+
+[node name="Collision" type="CollisionShape3D" parent="WallW"]
+shape = SubResource("shape_box")
+scale = Vector3(0.15, 2.7, 5.1)
+
+; --- MUR SUD (fenêtre 1,6 x 1,2, quatre segments) -----------------------------
+; Fenêtre centrée : x ∈ [-0.8, 0.8], y ∈ [0.9, 2.1]
+[node name="WallS_Left" type="StaticBody3D" parent="."]
+position = Vector3(-2.2, 1.35, 2.325)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallS_Left"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur")
+scale = Vector3(2.2, 2.7, 0.15)
+
+[node name="Collision" type="CollisionShape3D" parent="WallS_Left"]
+shape = SubResource("shape_box")
+scale = Vector3(2.2, 2.7, 0.15)
+
+[node name="WallS_Right" type="StaticBody3D" parent="."]
+position = Vector3(2.2, 1.35, 2.325)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallS_Right"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur")
+scale = Vector3(2.2, 2.7, 0.15)
+
+[node name="Collision" type="CollisionShape3D" parent="WallS_Right"]
+shape = SubResource("shape_box")
+scale = Vector3(2.2, 2.7, 0.15)
+
+[node name="WallS_Top" type="StaticBody3D" parent="."]
+position = Vector3(0, 2.4, 2.325)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallS_Top"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur")
+scale = Vector3(1.6, 0.6, 0.15)
+
+[node name="Collision" type="CollisionShape3D" parent="WallS_Top"]
+shape = SubResource("shape_box")
+scale = Vector3(1.6, 0.6, 0.15)
+
+[node name="WallS_Sill" type="StaticBody3D" parent="."]
+position = Vector3(0, 0.45, 2.325)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallS_Sill"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur")
+scale = Vector3(1.6, 0.9, 0.15)
+
+[node name="Collision" type="CollisionShape3D" parent="WallS_Sill"]
+shape = SubResource("shape_box")
+scale = Vector3(1.6, 0.9, 0.15)
+
+; --- MUR EST (porte z ∈ [0.55, 1.45], h 2.1) ---------------------------------
+[node name="WallE_North" type="StaticBody3D" parent="."]
+position = Vector3(3.075, 1.35, -0.85)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallE_North"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur2")
+scale = Vector3(0.15, 2.7, 2.8)
+
+[node name="Collision" type="CollisionShape3D" parent="WallE_North"]
+shape = SubResource("shape_box")
+scale = Vector3(0.15, 2.7, 2.8)
+
+[node name="WallE_South" type="StaticBody3D" parent="."]
+position = Vector3(3.075, 1.35, 1.85)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallE_South"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur2")
+scale = Vector3(0.15, 2.7, 0.8)
+
+[node name="Collision" type="CollisionShape3D" parent="WallE_South"]
+shape = SubResource("shape_box")
+scale = Vector3(0.15, 2.7, 0.8)
+
+[node name="WallE_Lintel" type="StaticBody3D" parent="."]
+position = Vector3(3.075, 2.4, 1.0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallE_Lintel"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_mur2")
+scale = Vector3(0.15, 0.6, 0.9)
+
+[node name="Collision" type="CollisionShape3D" parent="WallE_Lintel"]
+shape = SubResource("shape_box")
+scale = Vector3(0.15, 0.6, 0.9)
+
+; --- COULOIR NOIR (derrière la porte) ----------------------------------------
+[node name="CorrFloor" type="StaticBody3D" parent="."]
+position = Vector3(3.975, -0.05, 1.0)
+
+[node name="Mesh" type="MeshInstance3D" parent="CorrFloor"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_noir")
+scale = Vector3(1.8, 0.1, 1.2)
+
+[node name="Collision" type="CollisionShape3D" parent="CorrFloor"]
+shape = SubResource("shape_box")
+scale = Vector3(1.8, 0.1, 1.2)
+
+[node name="CorrEnd" type="StaticBody3D" parent="."]
+position = Vector3(4.875, 1.35, 1.0)
+
+[node name="Mesh" type="MeshInstance3D" parent="CorrEnd"]
+mesh = SubResource("mesh_box")
+material_override = SubResource("mat_noir")
+scale = Vector3(0.15, 2.7, 1.2)
+
+[node name="Collision" type="CollisionShape3D" parent="CorrEnd"]
+shape = SubResource("shape_box")
+scale = Vector3(0.15, 2.7, 1.2)
