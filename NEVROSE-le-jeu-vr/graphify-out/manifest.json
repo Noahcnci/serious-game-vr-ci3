@@ -1,0 +1,32 @@
+{
+  "AGENTS.md": {
+    "mtime": 1791294616.2631886,
+    "seen": 1791298365.781305,
+    "ast_hash": "21ceb6533048be51308e69e7b74a35cf",
+    "semantic_hash": ""
+  },
+  "ASSIMILE_GDD.md": {
+    "mtime": 1791294060.6882524,
+    "seen": 1791298365.7813108,
+    "ast_hash": "b91d2b2551da0d035ecf7cf7a001e8f4",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1791296343.4488387,
+    "seen": 1791298365.7813132,
+    "ast_hash": "f0a7b92f80d26c8ecb309cfcc09ec575",
+    "semantic_hash": ""
+  },
+  "tools/codemap_gd.py": {
+    "mtime": 1791298514.0145807,
+    "seen": 1791298539.5439007,
+    "ast_hash": "c12516dbef6024b9784326f1e3245ec5",
+    "semantic_hash": ""
+  },
+  "docs/CODEMAP.md": {
+    "mtime": 1791298575.5938246,
+    "seen": 1791298576.3529508,
+    "ast_hash": "d22830647f77638e1ce00c7a931bb6c6",
+    "semantic_hash": ""
+  }
+}

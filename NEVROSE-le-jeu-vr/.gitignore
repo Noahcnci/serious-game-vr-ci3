@@ -1,0 +1,10 @@
+# Godot 4+ standard ignores
+.godot/
+/android/
+*.apk
+*.apks
+*.aab
+*.keystore
+!debug.keystore
+.builds/
+.cache/
