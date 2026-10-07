@@ -15,11 +15,6 @@ config/description="Fouille ton appart pour trouver tes médocs avant que la sch
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7")
 
-[display]
-
-window/size/viewport_width=1920
-window/size/viewport_height=1080
-
 [autoload]
 
 GameLog="*res://scripts/game_logger.gd"
@@ -27,6 +22,11 @@ GameLog="*res://scripts/game_logger.gd"
 [debug]
 
 file_logging/enable_file_logging=true
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 
 [physics]
 
@@ -36,9 +36,9 @@ file_logging/enable_file_logging=true
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+textures/vram_compression/import_etc2_astc=true
 lights_and_shadows/directional_shadow/size=2048
 anti_aliasing/quality/msaa_3d=2
-textures/vram_compression/import_etc2_astc=true
 environment/defaults/default_clear_color=Color(0.035, 0.03, 0.045, 1)
 
 [xr]
