@@ -1,6 +1,7 @@
 # CHECKPOINT — NÉVROSE le jeu VR (fragment 1 jouable)
-# Écrit le 06/10/2026 — État : APK v2 (fix écran noir + logs) construit, signé, validé.
+# Écrit le 07/10/2026 — État : APK v3 (fix écran noir + fix déplacement VR + logs) construite, signée, validée.
 # Projet : D:\DEV\OTHERS\GODOT\serious-game-vr-ci3\NEVROSE-le-jeu-vr
+# Repo GitHub : Noahcnci/serious-game-vr-ci3 (2 sous-dossiers : NEVROSE-le-jeu-vr + serious-game-vr-ci-3)
 
 ================================================================================
 1. LE PROJET — C'EST QUOI
@@ -207,15 +208,17 @@ le heartbeat y confirme le câblage.
 
 FAIT :
 - Fragment 1 complet + tests 24/24 PASS.
-- APK v2 construite (17:40) : build/nevrose_quest2.apk — zip OK, 151 entrées,
-  classes.dex + libopenxr_loader.so, signée debug (SHA-1
-  d32d10187e50bf222bd1556aa58e4be07b804e4b).
+- APK v3 construite (07/10 13:38) : build/nevrose_quest2.apk — zip OK, signée
+  debug (SHA-1 d32d10187e50bf222bd1556aa58e4be07b804e4b).
 - Fix écran noir inclus : viewport.use_xr=true.
+- Fix déplacement VR : axe Y du stick gauche inversé à la source (Quest renvoie
+  +Y quand on pousse en avant, contrairement à Godot).
 - Système de logs .txt inclus.
+- Repo rebranché sur la racine (2 sous-dossiers), push GitHub OK.
 - PAS ENCORE déployée sur le casque (v1 installée = l'ancienne, écran noir).
 
 À FAIRE (dans l'ordre) :
-1. Pousser la NOUVELLE apk sur le casque : adb push build/nevrose_quest2.apk
+1. Pousser l'APK v3 sur le casque : adb push build/nevrose_quest2.apk
    /sdcard/Download/  (puis l'utilisateur l'installe/lance depuis le casque,
    ou adb install -r).
 2. L'utilisateur lance depuis le menu, laisse tourner ~20 s.
