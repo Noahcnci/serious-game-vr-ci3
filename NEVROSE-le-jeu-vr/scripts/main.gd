@@ -281,7 +281,10 @@ func _tick_sanity(delta: float) -> void:
 func _tick_movement(delta: float) -> void:
 	var move := Vector2.ZERO
 	if xr_active:
+		# Sur Quest le runtime OpenXR renvoie Y inversé (stick avant = +Y).
+		# On corrige à la source pour garder la convention Godot (avant = -Y).
 		move = left_hand.get_vector2(&"primary")
+		move.y = -move.y
 	else:
 		move = Input.get_vector(&"dbg_left", &"dbg_right", &"dbg_forward", &"dbg_back")
 		if Input.is_action_pressed(&"dbg_turn_left"):
@@ -305,6 +308,7 @@ func _tick_movement(delta: float) -> void:
 		return
 
 	# Direction relative au regard (yaw de la caméra uniquement — pas de pitch).
+	# Stick vers l'avant = move.y négatif → -move.y positif → on avance.
 	var basis_yaw := xr_camera.global_transform.basis
 	var forward := -basis_yaw.z
 	forward.y = 0.0
