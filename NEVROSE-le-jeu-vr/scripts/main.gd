@@ -18,6 +18,7 @@ const RAY_LENGTH := 3.0
 const SANITY_RATE := 1.4 # points/seconde tant que pas de dose (monte "vite")
 const SANITY_DOSE_RELIEF := 55.0 # reset partiel à la prise (GDD §5.1)
 const SANITY_RATE_AFTER_DOSE := 0.7 # la montée ralentit après une dose
+const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 
 # Limites de la pièce pour le clamp de déplacement (mur = mur, zéro collision coûteuse)
 const ROOM_MIN := Vector2(-2.7, -2.0)
@@ -306,7 +307,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _tick_sanity(delta: float) -> void:
-	sanity = minf(100.0, sanity + sanity_rate * delta)
+	# Round 3 : montée de schizo plus rapide — chaque round (dose) accélère.
+	var eff := sanity_rate + SANITY_RATE_ESCALATION * dose_count
+	sanity = minf(100.0, sanity + eff * delta)
 	if sanity >= 100.0:
 		_trigger_game_over()
 

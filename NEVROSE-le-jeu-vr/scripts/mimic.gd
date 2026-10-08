@@ -62,12 +62,17 @@ func _process(delta: float) -> void:
 		cos(Time.get_ticks_msec() / 47.0) * tremble_strength
 	)
 	# Round 3 : dérive vers la cible (le joueur) — lentement.
+	# GDD §5.3 : les mimics mobiles bougent QUAND TU NE LES REGARDES PAS.
 	if is_mobile and attract_target and is_instance_valid(attract_target):
-		var dir: Vector3 = (attract_target.global_transform.origin - global_transform.origin)
-		dir.y = 0.0
-		if dir.length() > 0.7: ## ne colle pas au joueur
-			position += dir.normalized() * (move_speed * delta)
-		else:
+		# Check "est-ce que le joueur me regarde ?"
+		var cam_pos: Vector3 = attract_target.global_transform.origin
+		var cam_fwd: Vector3 = -attract_target.global_transform.basis.z
+		var to_me: Vector3 = global_transform.origin - cam_pos
+		to_me.y = 0.0
+		var looking_at_me: bool = cam_fwd.dot(to_me.normalized()) > 0.7 # ~45° de vision
+		if not looking_at_me and to_me.length() > 0.7:
+			position += -to_me.normalized() * (move_speed * delta)
+		elif to_me.length() <= 0.7:
 			# Arrivé trop près : la schizo monte un peu (présence oppressante)
 			var main := get_tree().get_first_node_in_group("main")
 			if main and main.has_method(&"on_mimic_close"):
