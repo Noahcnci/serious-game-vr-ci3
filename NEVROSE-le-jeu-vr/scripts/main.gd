@@ -481,6 +481,8 @@ func _on_container_lock_broken(container: Node3D, noise: float) -> void:
 	_pulse_haptics()
 	_log("GAME", "verrou FORCÉ sur %s (bruit=%.1f)" % [container.name, noise])
 	_update_chat("Le verrou cède avec un CRAC. Quelque part, quelque chose s'est levé de son sommeil.")
+	# Round 3 : le bruit attire un mimic mobile
+	spawn_mobile_mimic()
 
 
 # GDD §5.6 : déverrouillé par la bonne clé (silencieux).
@@ -488,6 +490,34 @@ func _on_container_unlocked_by_key(container: Node3D) -> void:
 	_consume_key()
 	_log("GAME", "déverrouillé par clé : %s" % container.name)
 	_update_chat("La clé tourne dans le silence. Il n'a rien entendu.")
+
+
+# Round 3 : un mimic mobile a atteint le joueur (présence oppressante).
+func on_mimic_close() -> void:
+	sanity = minf(100.0, sanity + 12.0)
+	_pulse_haptics()
+	_log("GAME", "mimic mobile atteint le joueur (+12 sanity)")
+	_update_chat("Il est là. Juste derrière ta nuque. Tu sens son souffle froid.")
+
+
+# Round 3 : le bruit d'un verrou forcé attire un mimic mobile (GDD §5.6 → §5.3).
+# Il apparaît aux limites de la pièce et dérive vers le joueur.
+func spawn_mobile_mimic() -> void:
+	var m := Mimic.new()
+	m.name = "MobileMimic"
+	m.is_mobile = true
+	m.move_speed = 0.35
+	m.attract_target = xr_camera
+	add_child(m)
+	# Spawn aux bords de la pièce (loin du joueur)
+	var edges := [
+		Vector3(-2.8, 0.0, -2.0),
+		Vector3(2.8, 0.0, -2.0),
+		Vector3(-2.8, 0.0, 2.0),
+		Vector3(2.8, 0.0, 2.0),
+	]
+	m.position = edges.pick_random()
+	_log("GAME", "mimic mobile spawné à %s" % m.position)
 
 
 # Appelé par la pilule quand elle est absorbée (GDD §5.1).
