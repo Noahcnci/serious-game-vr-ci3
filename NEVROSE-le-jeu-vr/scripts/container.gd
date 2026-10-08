@@ -1,46 +1,79 @@
 class_name InteractiveContainer
 extends Node3D
 ## Conteneur interactif (GDD §5.1/§5.6) : tiroir qui glisse ou porte de placard
-## qui pivote sur charnière. Aucun verrou pour l'instant (round 1 : pilules
-## faciles — les verrous arrivent au round 2).
+## qui pivote sur charnière. Round 2 : système de verrous (clé / force).
 
 enum Mode { SLIDE, ROTATE }
+enum LockType { NONE, KEY, FORCEABLE }
 
 const OPEN_TIME := 0.35
+const FORCE_HITS_TO_BREAK := 3
+const FORCE_NOISE_LEVEL := 0.8 ## 0.0..1.0 — attire les mimics
+
+const KEY_USE_RADIUS := 1.2 ## Distance max clé→conteneur pour déverrouiller
+
+signal lock_broken(container: Node3D, noise: float) ## Émis quand force-ouverte
+signal unlocked_by_key(container: Node3D) ## Émis quand clé utilisée
 
 var mode: Mode = Mode.SLIDE
-var slide_axis := Vector3.BACK ## Direction locale d'ouverture (tiroir, vers +Z)
+var slide_axis := Vector3.BACK
 var open_distance := 0.45
-var rotate_angle := 115.0 ## Degrés (porte de placard)
+var rotate_angle := 115.0
 
+var lock_type: LockType = LockType.NONE
+var required_key: Node3D = null ## Référence à l'objet clé spécifique
+var is_locked := false
+var force_hits := 0
 var is_open := false
 var _tween: Tween
 var _closed_pos: Vector3
 var _closed_rot_y: float
 var area: Area3D
-var front_mesh: MeshInstance3D ## Surbrillance au pointage
-var dose: Node3D = null ## Pilule cachée dedans (si spawn ici)
-
+var front_mesh: MeshInstance3D
+var dose: Node3D = null
 var _mat_normal: Material
 var _mat_hover: Material
+var _mat_locked: Material ## Surbrillance rouge (verrouillé)
 
 
-func _init(p_mode: Mode, p_axis: Vector3 = Vector3.BACK, p_dist: float = 0.45, p_angle: float = 115.0) -> void:
+func _init(p_mode: Mode = Mode.SLIDE, p_axis: Vector3 = Vector3.BACK,
+			p_dist: float = 0.45, p_angle: float = 115.0,
+			p_lock: LockType = LockType.NONE) -> void:
 	mode = p_mode
 	slide_axis = p_axis
 	open_distance = p_dist
 	rotate_angle = p_angle
+	lock_type = p_lock
+	is_locked = (p_lock != LockType.NONE)
 
 
 func _ready() -> void:
 	_closed_pos = position
 	_closed_rot_y = rotation.y
+	if is_locked:
+		_mat_locked = _make_locked_mat()
+		if front_mesh:
+			front_mesh.material_override = _mat_locked
+
+
+func _make_locked_mat() -> Material:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.9, 0.2, 0.1, 0.4)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	return m
 
 
 ## Raycast (main.gd) : la zone d'interaction est l'Area3D enfant.
-func on_pointed() -> void:
-	if front_mesh and _mat_hover:
-		front_mesh.material_override = _mat_hover
+func on_pointed(holding_key: Node3D = null) -> void:
+	if front_mesh:
+		if is_locked and _mat_locked:
+			# Si le joueur tient la bonne clé → surbrillance verte
+			if holding_key == required_key:
+				front_mesh.material_override = _make_unlock_mat()
+			else:
+				front_mesh.material_override = _mat_locked
+		elif _mat_hover:
+			front_mesh.material_override = _mat_hover
 
 
 func on_unpointed() -> void:
@@ -48,9 +81,16 @@ func on_unpointed() -> void:
 		front_mesh.material_override = _mat_normal
 
 
-func interact() -> void:
+## Interaction principale (grip / trigger).
+## Si verrouillé → tentative de force-ouverture ou déverrouillage par clé.
+## Si ouvert → open/close toggle.
+func interact(holding_key: Node3D = null) -> void:
+	if is_locked:
+		_try_unlock(holding_key)
+		return
+	# Non verrouillé : open/close normal
 	if _tween and _tween.is_valid():
-		return # ouverture en cours
+		return
 	is_open = not is_open
 	_tween = create_tween().set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	if mode == Mode.SLIDE:
@@ -61,6 +101,46 @@ func interact() -> void:
 		_tween.tween_property(self, "rotation:y", target_y, OPEN_TIME)
 	if is_open and dose:
 		_reveal_dose()
+
+
+func _try_unlock(holding_key: Node3D) -> void:
+	# Clé correcte ? (doit être fournie ET correspondre à la clé attendue)
+	if lock_type == LockType.KEY and holding_key != null and holding_key == required_key:
+		_unlock()
+		unlocked_by_key.emit(self)
+		return
+	# Pas de clé → force (si forceable)
+	if lock_type == LockType.FORCEABLE:
+		force_hits += 1
+		if force_hits >= FORCE_HITS_TO_BREAK:
+			_unlock()
+			lock_broken.emit(self, FORCE_NOISE_LEVEL)
+		return
+	# KEY lock sans clé → feedback visuel (flash rouge)
+	_flash_locked()
+
+
+func _unlock() -> void:
+	is_locked = false
+	if front_mesh and _mat_normal:
+		front_mesh.material_override = _mat_normal
+	is_open = false
+	interact()
+
+
+func _flash_locked() -> void:
+	if not front_mesh:
+		return
+	var tw := create_tween()
+	tw.tween_property(front_mesh, "self_modulate:a", 1.0, 0.05)
+	tw.tween_property(front_mesh, "self_modulate:a", 0.0, 0.15)
+
+
+func _make_unlock_mat() -> Material:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(0.2, 0.9, 0.2, 0.4)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	return m
 
 
 func _reveal_dose() -> void:

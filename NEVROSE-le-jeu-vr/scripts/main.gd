@@ -41,6 +41,7 @@ const FOLIE_CRITIQUE := 88.0 # teinte critique + messages urgents
 var _left_hand_mesh: Node3D = null
 var _right_hand_mesh: Node3D = null
 var _body: VRBody = null
+var _held_key: KeyObject = null ## Clé actuellement dans la main (GDD §5.6)
 const HAND_SCENE_R := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/right_hand_low.tscn")
 const HAND_SCENE_L := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/left_hand_low.tscn")
 # Distance max pour interagir "au contact" (proximité) sans viser au rayon
@@ -172,6 +173,11 @@ func _build_world() -> void:
 	add_child(apartment)
 	apartment.build()
 	_log("WORLD", "appartement construit : %d nœuds" % apartment.get_child_count())
+	# GDD §5.6 : signaux verrous (clé / force → bruit → mimic)
+	for c in apartment.containers:
+		if c.lock_type != InteractiveContainer.LockType.NONE:
+			c.lock_broken.connect(_on_container_lock_broken)
+			c.unlocked_by_key.connect(_on_container_unlocked_by_key)
 
 
 # ---------------------------------------------------------------------------
@@ -405,14 +411,20 @@ func interact() -> void:
 	if game_over:
 		_restart()
 		return
-	# 1) Objet pointé au rayon (priorité) → déjà résolu dans _pointed.
-	if _pointed != null and is_instance_valid(_pointed) and _pointed.has_method(&"interact"):
-		_pointed.interact()
+	# 1) Clé pointée → la ramasser
+	if _pointed is KeyObject and is_instance_valid(_pointed):
+		_pickup_key(_pointed as KeyObject)
 		return
-	# 2) Proximité : on cherche un conteneur/pilule interactif près de la main.
+	# 2) Objet pointé au rayon (priorité) → déjà résolu dans _pointed.
+	if _pointed != null and is_instance_valid(_pointed) and _pointed.has_method(&"interact"):
+		var key_ref: KeyObject = _held_key if _held_key else null
+		_pointed.interact(key_ref)
+		return
+	# 3) Proximité : on cherche un conteneur/pilule interactif près de la main.
 	var near := _nearest_interactable()
 	if near != null:
-		near.interact()
+		var key_ref2: KeyObject = _held_key if _held_key else null
+		near.interact(key_ref2)
 
 
 # Retourne l'interactable le plus proche d'une main (gâchette), dans un rayon
@@ -437,6 +449,45 @@ func _nearest_interactable() -> Node:
 				best_d = dd
 				best = dose
 	return best
+
+
+# Ramasse une clé (GDD §5.6) — elle reste "dans la main" (vivante + visible)
+# jusqu'à ce qu'elle soit utilisée sur son conteneur.
+func _pickup_key(key: KeyObject) -> void:
+	if _held_key:
+		_update_chat("Ta main est déjà pleine.")
+		return
+	_held_key = key
+	key.is_held = true
+	key.name = "HeldKey"
+	right_hand.add_child(key) ## remonte dans la main animée → suit le controller
+	key.position = Vector3(0.0, -0.08, 0.12)
+	key.rotation = Vector3(PI / 2, 0, 0)
+	_log("GAME", "clé ramassée")
+	_update_chat("Tu as une clé. Elle sert à quelque chose…")
+
+
+# Consomme la clé (après déverrouillage réussi).
+func _consume_key() -> void:
+	if _held_key and is_instance_valid(_held_key):
+		_held_key.queue_free()
+	_held_key = null
+
+
+# GDD §5.6 : conteneur forcé ouvert = bruit qui attire les mimics.
+func _on_container_lock_broken(container: Node3D, noise: float) -> void:
+	_consume_key()
+	sanity = minf(100.0, sanity + 8.0)
+	_pulse_haptics()
+	_log("GAME", "verrou FORCÉ sur %s (bruit=%.1f)" % [container.name, noise])
+	_update_chat("Le verrou cède avec un CRAC. Quelque part, quelque chose s'est levé de son sommeil.")
+
+
+# GDD §5.6 : déverrouillé par la bonne clé (silencieux).
+func _on_container_unlocked_by_key(container: Node3D) -> void:
+	_consume_key()
+	_log("GAME", "déverrouillé par clé : %s" % container.name)
+	_update_chat("La clé tourne dans le silence. Il n'a rien entendu.")
 
 
 # Appelé par la pilule quand elle est absorbée (GDD §5.1).

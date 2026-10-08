@@ -119,8 +119,9 @@ func _cyl(parent: Node, name: String, radius: float, height: float, pos: Vector3
 	return mi
 
 
-func _make_container(parent: Node, name: String, cmode: InteractiveContainer.Mode, slot_pos: Vector3, axis: Vector3, dist: float, angle := 115.0) -> InteractiveContainer:
-	var c := InteractiveContainer.new(cmode, axis, dist, angle)
+func _make_container(parent: Node, name: String, cmode: InteractiveContainer.Mode, slot_pos: Vector3, axis: Vector3, dist: float, angle := 115.0,
+		lock_type: InteractiveContainer.LockType = InteractiveContainer.LockType.NONE) -> InteractiveContainer:
+	var c := InteractiveContainer.new(cmode, axis, dist, angle, lock_type)
 	c.name = name
 	c.position = slot_pos
 	parent.add_child(c)
@@ -150,6 +151,28 @@ func build() -> void:
 	_build_window()
 	_build_mimic_mugs()
 	_register_spawn_spots()
+	_build_keys() ## GDD §5.6 : clés cachées pour les conteneurs verrouillés
+
+
+# GDD §5.6 : une clé cachée quelque part dans la maison déverrouille le
+# conteneur verrouillé par clé. Spawn aléatoire sur les surfaces.
+func _build_keys() -> void:
+	for c in containers:
+		if c.lock_type == InteractiveContainer.LockType.KEY:
+			var key := KeyObject.new()
+			key.name = "Key_%s" % c.name
+			key.target_container = c
+			c.required_key = key ## le conteneur reconnaît CETTE clé
+			add_child(key)
+			# Cachée sur une surface (pas à l'évidence)
+			var spots := [
+				Vector3(-0.2, 0.79, 0.3),   ## table
+				Vector3(0.6, 0.87, -1.9),   ## plan de travail
+				Vector3(-1.95, 0.46, 1.3),  ## lit
+				Vector3(-2.85, 1.88, -0.6), ## étagère haute
+			]
+			key.position = spots.pick_random()
+			key.position.y += 0.06
 
 
 # Coquille : sol, plafond, 4 murs + couloir noir derrière la porte.
@@ -212,10 +235,14 @@ func _build_kitchen() -> void:
 	_box(root, "Carcass", Vector3(2.6, 0.84, 0.6), Vector3(-1.3, 0.42, -1.95), m_meuble)
 	_box(root, "CounterTop", Vector3(2.7, 0.05, 0.68), Vector3(-1.3, 0.885, -1.95), m_bois)
 
-	# 3 tiroirs qui glissent vers +Z
+	# 3 tiroirs qui glissent vers +Z — le tiroir du milieu est VERROUILLÉ (clé)
+	var locked_idx := 1
 	for i in 3:
 		var cx := -2.2 + i * 0.9
-		var drawer := _make_container(root, "Drawer%d" % i, InteractiveContainer.Mode.SLIDE, Vector3(cx, 0.72, -1.63), Vector3.BACK, 0.45)
+		var lock := InteractiveContainer.LockType.NONE
+		if i == locked_idx:
+			lock = InteractiveContainer.LockType.KEY
+		var drawer := _make_container(root, "Drawer%d" % i, InteractiveContainer.Mode.SLIDE, Vector3(cx, 0.72, -1.63), Vector3.BACK, 0.45, 115.0, lock)
 		drawer.front_mesh = _box(drawer, "Front", Vector3(0.8, 0.17, 0.03), Vector3.ZERO, m_bois)
 		_box(drawer, "Body", Vector3(0.74, 0.12, 0.5), Vector3(0, 0, -0.26), m_meuble)
 		_box(drawer, "Handle", Vector3(0.3, 0.025, 0.03), Vector3(0, 0.0, 0.03), m_metal)
@@ -258,7 +285,10 @@ func _build_wardrobe() -> void:
 	var door_w := 0.55
 	for i in 2:
 		var hinge_z := -2.1 + i * 1.1 # charnière sud puis nord
-		var door := InteractiveContainer.new(InteractiveContainer.Mode.ROTATE, Vector3.ZERO, 0.0, 115.0)
+		var lock := InteractiveContainer.LockType.NONE
+		if i == 1:
+			lock = InteractiveContainer.LockType.FORCEABLE # la porte nord se force
+		var door := InteractiveContainer.new(InteractiveContainer.Mode.ROTATE, Vector3.ZERO, 0.0, 115.0, lock)
 		door.name = "WardrobeDoor%d" % i
 		root.add_child(door)
 		door.position = Vector3(2.32, 1.05, hinge_z)
