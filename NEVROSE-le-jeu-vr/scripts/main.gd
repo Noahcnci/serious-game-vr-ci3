@@ -36,12 +36,13 @@ const FOLIE_CRITIQUE := 88.0 # teinte critique + messages urgents
 @onready var left_hand: XRController3D = $XROrigin3D/LeftHand
 @onready var right_hand: XRController3D = $XROrigin3D/RightHand
 
-# Mains visibles (modèles low-poly godot-xr-tools) et corps FPV
+# Mains animées (godot-xr-tools) — le script hand.gd lit grip/trigger du
+# XRController3D parent et pilote le blend tree automatiquement.
 var _left_hand_mesh: Node3D = null
 var _right_hand_mesh: Node3D = null
 var _body: VRBody = null
-const HAND_SCENE_R := preload("res://assets/hands/Hand_low_R.gltf")
-const HAND_SCENE_L := preload("res://assets/hands/Hand_low_L.gltf")
+const HAND_SCENE_R := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/right_hand_low.tscn")
+const HAND_SCENE_L := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/left_hand_low.tscn")
 # Distance max pour interagir "au contact" (proximité) sans viser au rayon
 const PROXIMITY_RADIUS := 0.45
 
@@ -182,7 +183,7 @@ func _build_player_body() -> void:
 	right_hand.add_child(_right_hand_mesh)
 	_left_hand_mesh = HAND_SCENE_L.instantiate()
 	left_hand.add_child(_left_hand_mesh)
-	_log("WORLD", "mains VR low-poly attachées (gauche + droite)")
+	_log("WORLD", "mains animées (godot-xr-tools) attachées : grip=pointer, grip+trigger=saisir")
 
 	_body = VRBody.new()
 	_body.name = "PlayerBody"
