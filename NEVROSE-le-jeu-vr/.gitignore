@@ -8,3 +8,4 @@
 !debug.keystore
 .builds/
 .cache/
+build/
