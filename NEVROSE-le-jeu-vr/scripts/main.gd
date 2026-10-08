@@ -70,6 +70,7 @@ var vignette_rect: ColorRect
 var chat_label: Label
 var center_dot: ColorRect
 var gameover_label: Label
+var creepy_voices: Node = null ## AudioStreamPlayer3D HRTF (voix dans les murs)
 
 # Journal de session (autoload GameLog). Résolu paresseusement pour rester
 # tolérant aux contextes sans autoload (tests headless).
@@ -179,6 +180,12 @@ func _build_world() -> void:
 		if c.lock_type != InteractiveContainer.LockType.NONE:
 			c.lock_broken.connect(_on_container_lock_broken)
 			c.unlocked_by_key.connect(_on_container_unlocked_by_key)
+
+	# GDD §5.2/§7 : voix dans les murs (HRTF binaural)
+	creepy_voices = preload("res://scripts/creepy_voices.gd").new()
+	creepy_voices.name = "CreepyVoices"
+	add_child(creepy_voices)
+	_log("AUDIO", "système voix murs initialisé (HRTF spatial)")
 
 
 # ---------------------------------------------------------------------------
@@ -304,6 +311,7 @@ func _physics_process(delta: float) -> void:
 	_tick_movement(delta)
 	_tick_interaction_ray()
 	_tick_sanity_feedback(delta)
+	_tick_pill_eat_feedback(delta)
 
 
 func _tick_sanity(delta: float) -> void:
@@ -414,16 +422,24 @@ func interact() -> void:
 	if game_over:
 		_restart()
 		return
+	# 0) Pilule tenue : gâchette = avaler (si dans la zone bouche)
+	if _held_pill and is_instance_valid(_held_pill):
+		_held_pill.interact() ## interne : can_eat() → _consume()
+		return
 	# 1) Clé pointée → la ramasser
 	if _pointed is KeyObject and is_instance_valid(_pointed):
 		_pickup_key(_pointed as KeyObject)
 		return
-	# 2) Objet pointé au rayon (priorité) → déjà résolu dans _pointed.
+	# 2) Pilule pointée (pas encore tenue) → la ramasser
+	if _pointed is Dose and is_instance_valid(_pointed):
+		pickup_pill(_pointed as Dose)
+		return
+	# 3) Objet pointé au rayon (priorité) → déjà résolu dans _pointed.
 	if _pointed != null and is_instance_valid(_pointed) and _pointed.has_method(&"interact"):
 		var key_ref: KeyObject = _held_key if _held_key else null
 		_pointed.interact(key_ref)
 		return
-	# 3) Proximité : on cherche un conteneur/pilule interactif près de la main.
+	# 4) Proximité : on cherche un conteneur/pilule interactif près de la main.
 	var near := _nearest_interactable()
 	if near != null:
 		var key_ref2: KeyObject = _held_key if _held_key else null
@@ -470,11 +486,52 @@ func _pickup_key(key: KeyObject) -> void:
 	_update_chat("Tu as une clé. Elle sert à quelque chose…")
 
 
+# Ramasse une pilule (GDD §5.1) — elle suit la main, le joueur la porte à la
+# bouche (zone ~28 cm sous la caméra) puis gâchette = avaler.
+var _held_pill: Dose = null
+
+func pickup_pill(pill: Dose) -> void:
+	if _held_pill and is_instance_valid(_held_pill):
+		_update_chat("Tu tiens déjà une pilule.")
+		return
+	_held_pill = pill
+	pill.is_held = true
+	pill.camera = xr_camera
+	pill.name = "HeldPill"
+	right_hand.add_child(pill)
+	pill.position = Vector3(0.0, -0.06, 0.10)
+	pill.rotation = Vector3(PI / 2, 0, 0)
+	_log("GAME", "pilule saisie — porte-la à ta bouche et gâchette")
+	_update_chat("Tu l'as. Porte-la à ta bouche. Gâchette = avaler.")
+
+
+## Appelé chaque frame pour vérifier si la pilule est dans la zone bouche
+## et afficher l'indicateur (vignette + chat).
+func _tick_pill_eat_feedback(delta: float) -> void:
+	if _held_pill and is_instance_valid(_held_pill):
+		if _held_pill.can_eat():
+			# Indicateur : le point central devient vert + chat
+			center_dot.color = Color(0.3, 1.0, 0.5, 1.0)
+			center_dot.size = Vector2(12, 12)
+			center_dot.position = Vector2(-6, -6)
+		else:
+			center_dot.color = Color(0.4, 1.0, 0.9, 0.95)
+			center_dot.size = Vector2(6, 6)
+			center_dot.position = Vector2(-3, -3)
+
+
 # Consomme la clé (après déverrouillage réussi).
 func _consume_key() -> void:
 	if _held_key and is_instance_valid(_held_key):
 		_held_key.queue_free()
 	_held_key = null
+
+
+# Consomme la pilule (après avoir mangé).
+func _consume_pill() -> void:
+	if _held_pill and is_instance_valid(_held_pill):
+		_held_pill.queue_free()
+	_held_pill = null
 
 
 # GDD §5.6 : conteneur forcé ouvert = bruit qui attire les mimics.
@@ -528,9 +585,10 @@ func on_dose_taken() -> void:
 	dose_count += 1
 	sanity = maxf(0.0, sanity - SANITY_DOSE_RELIEF)
 	sanity_rate = SANITY_RATE_AFTER_DOSE
+	_consume_pill() ## nettoie la référence (la pilule s'est déjà freed)
 	_log("GAME", "dose absorbue n°%d (sanity=%.0f)" % [dose_count, sanity])
 	_pulse_haptics()
-	_update_chat("Dose absorbue. Ça va mieux… pour l'instant. Cherche la suivante.")
+	_update_chat("Dose absorbue. Ça va mieux… pour l'instant. Cherche la suivante. Il n'y a PAS de sortie.")
 	await get_tree().create_timer(2.0).timeout
 	_spawn_dose()
 
@@ -555,6 +613,9 @@ func _tick_sanity_feedback(delta: float) -> void:
 	vignette_rect.material.set_shader_parameter(&"intensity", lerpf(0.12, 1.0, t))
 	apartment.set_insanity(t)
 	_tick_chat(delta, t)
+	# Voix dans les murs — plus la schizo monte, plus elles sont fréquentes
+	if creepy_voices and creepy_voices.has_method(&"tick"):
+		creepy_voices.tick(t, delta)
 
 
 # Le chat est l'horloge de la pression (GDD §5.2) : compte à rebours avant la
@@ -588,7 +649,13 @@ func _update_chat(text: String) -> void:
 func _trigger_game_over() -> void:
 	game_over = true
 	_log("GAME", "GAME OVER — assimilation (sanity=100)")
-	gameover_label.text = "L'APPART T'A ASSIMILÉ.\nTu es le mur, maintenant.\n\nGâchette / clic : recommencer"
+	gameover_label.text = (
+		"L'APPART T'A ASSIMILÉ.\n" +
+		"Tu es le mur, maintenant.\n\n" +
+		"Tu n'auras jamais réussi à sortir.\n" +
+		"Tu n'as fait que DÉCALER. Et ça, ça ne suffit pas.\n\n" +
+		"Gâchette / clic : recommencer (et perdre à nouveau)"
+	)
 	gameover_label.visible = true
 	vignette_rect.material.set_shader_parameter(&"intensity", 1.0)
 
@@ -597,10 +664,16 @@ func _restart() -> void:
 	game_over = false
 	sanity = 0.0
 	sanity_rate = SANITY_RATE
+	dose_count = 0
 	gameover_label.visible = false
+	_consume_pill()
+	_consume_key()
 	apartment.reset_containers()
 	_spawn_dose()
-	_update_chat("Encore une chance. Trouve la pilule.")
+	if creepy_voices:
+		creepy_voices.enabled = true
+	_log("GAME", "restart (round %d)" % dose_count)
+	_update_chat("Encore une chance. Trouve la pilule. Il n'y a pas de sortie.")
 
 
 func _pulse_haptics() -> void:
