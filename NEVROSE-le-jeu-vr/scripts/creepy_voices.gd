@@ -12,8 +12,10 @@ extends Node
 const VOICE_DIR := "res://assets/voices/"
 const VOICE_COUNT := 15
 
-## Emplacements spatiaux : murs (4), plafond (2), sol (2), coin/escalier (2)
-const PLACEMENTS: Array[Vector3] = [
+## Emplacements spatiaux : murs (4), plafond (2), sol (2), coin (2).
+## Valeurs par défaut = map 1 (studio 6x4.5). configure_room() les recale
+## pour une autre map (ex. salon+cuisine 8x6).
+var PLACEMENTS: Array[Vector3] = [
 	Vector3(2.65, 1.4, 0.0),   ## mur est (mi-hauteur)
 	Vector3(-2.65, 1.4, 0.0),  ## mur ouest
 	Vector3(0.0, 1.4, 2.65),   ## mur sud
@@ -30,6 +32,28 @@ const PLACEMENTS: Array[Vector3] = [
 	Vector3(0.5, 0.05, 2.65),  ## sol mur sud
 	Vector3(0.0, 1.2, -2.65),  ## mur nord (hauteur yeux)
 ]
+
+
+## Recale les emplacements pour une pièce de `w` x `d` mètres, hauteur `h`.
+## Appelé par main.gd après _build_world() avec les dims de la map courante.
+func configure_room(w: float, d: float, h: float) -> void:
+	PLACEMENTS = [
+		Vector3(w / 2 - 0.35, 1.4, 0.0),
+		Vector3(-w / 2 + 0.35, 1.4, 0.0),
+		Vector3(0.0, 1.4, d / 2 - 0.35),
+		Vector3(0.0, 1.4, -d / 2 + 0.35),
+		Vector3(0.5, h - 0.1, 0.3),
+		Vector3(-0.8, h - 0.1, -0.5),
+		Vector3(1.0, 0.05, 0.8),
+		Vector3(-1.2, 0.05, -0.6),
+		Vector3(w / 2 - 0.5, 0.5, d / 2 - 0.5),
+		Vector3(-w / 2 + 0.5, 0.5, -d / 2 + 0.5),
+		Vector3(0.0, h - 0.1, 0.0),
+		Vector3(w / 2 - 0.35, 2.2, 0.5),
+		Vector3(-w / 2 + 0.35, 2.2, -0.5),
+		Vector3(0.5, 0.05, d / 2 - 0.35),
+		Vector3(0.0, 1.2, -d / 2 + 0.35),
+	]
 
 var _players: Array[AudioStreamPlayer3D] = []
 var _streams: Array[AudioStreamWAV] = []
@@ -58,11 +82,11 @@ func _load_voices() -> void:
 		return
 	var files: Array[String] = []
 	dir.list_dir_begin()
-	var fname: String = dir.get_next_file()
+	var fname: String = dir.get_next()
 	while fname != "":
 		if fname.ends_with(".wav") and not fname.begins_with("raw_"):
 			files.append(fname)
-		fname = dir.get_next_file()
+		fname = dir.get_next()
 	dir.list_dir_end()
 	files.sort()
 	_streams.resize(files.size())
@@ -82,8 +106,6 @@ func _create_players() -> void:
 		p.name = "WallVoice_%d" % i
 		p.bus = "Master"
 		p.max_distance = 8.0
-		p.attenuation_filter_hz = 1200.0 ## les murs filtrent le bas médium
-		p.unit_attenuation = 1.0
 		p.position = PLACEMENTS[i % PLACEMENTS.size()]
 		add_child(p)
 		_players.append(p)

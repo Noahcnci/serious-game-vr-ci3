@@ -21,8 +21,9 @@ const SANITY_RATE_AFTER_DOSE := 0.7 # la montée ralentit après une dose
 const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 
 # Limites de la pièce pour le clamp de déplacement (mur = mur, zéro collision coûteuse)
-const ROOM_MIN := Vector2(-2.7, -2.0)
-const ROOM_MAX := Vector2(2.7, 2.0)
+# Map 2 (salon+cuisine) : 8 x 6 m → x ∈ [-3.7, 3.7], z ∈ [-2.7, 2.7]
+const ROOM_MIN := Vector2(-3.7, -2.7)
+const ROOM_MAX := Vector2(3.7, 2.7)
 
 # Seuils de folie (GDD §5.2) : la folie se lit sur le monde, pas sur une barre.
 const FOLIE_LEGERE := 35.0 # vignette douce
@@ -65,7 +66,7 @@ var _chat_hold := 0.0 # temps restant avant retour au compte à rebours
 var _chat_accum := 0.0
 var _creepy_idx := 0
 
-var apartment: Node3D
+var apartment: MapBase
 var vignette_rect: ColorRect
 var chat_label: Label
 var center_dot: ColorRect
@@ -170,11 +171,11 @@ func _build_world() -> void:
 	world_env.environment = env
 	add_child(world_env)
 
-	apartment = preload("res://scripts/apartment.gd").new()
-	apartment.name = "Apartment"
+	apartment = preload("res://scripts/map2_living.gd").new()
+	apartment.name = "Map2Living"
 	add_child(apartment)
 	apartment.build()
-	_log("WORLD", "appartement construit : %d nœuds" % apartment.get_child_count())
+	_log("WORLD", "map salon+cuisine construite : %d nœuds" % apartment.get_child_count())
 	# GDD §5.6 : signaux verrous (clé / force → bruit → mimic)
 	for c in apartment.containers:
 		if c.lock_type != InteractiveContainer.LockType.NONE:
@@ -185,6 +186,7 @@ func _build_world() -> void:
 	creepy_voices = preload("res://scripts/creepy_voices.gd").new()
 	creepy_voices.name = "CreepyVoices"
 	add_child(creepy_voices)
+	creepy_voices.configure_room(apartment.room_w, apartment.room_d, apartment.room_h)
 	_log("AUDIO", "système voix murs initialisé (HRTF spatial)")
 
 

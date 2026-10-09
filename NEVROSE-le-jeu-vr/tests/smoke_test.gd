@@ -41,14 +41,15 @@ func _initialize() -> void:
 	_assert(main.get_node_or_null("XROrigin3D/RightHand") != null, "A: manette droite présente")
 	_assert(main.is_xr_active() == false, "A: headless = fallback bureau (OpenXR inactif)")
 
-	# --- B : appartement ---
-	var apt: Apartment = main.apartment
-	_assert(apt != null, "B: appartement instancié")
+	# --- B : appartement (Map2Living — salon + cuisine) ---
+	var apt: MapBase = main.apartment
+	_assert(apt != null, "B: appartement (MapBase) instancié")
 	_assert(apt.get_node_or_null("Shell/Floor") != null, "B: sol construit")
 	_assert(apt.get_node_or_null("Shell/WallN") != null, "B: mur nord construit")
-	_assert(apt.get_node_or_null("Kitchen/Carcass") != null, "B: cuisine construite")
+	_assert(apt.get_node_or_null("Kitchen") != null, "B: cuisine construite")
+	_assert(apt.get_node_or_null("LivingRoom") != null, "B: salon construit")
 	_assert(apt.containers.size() >= 5, "B: conteneurs interactifs (tiroirs + placard) : %d" % apt.containers.size())
-	_assert(apt.get_node_or_null("MimicMugs/MugMimic") != null, "B: mimic statique présent (round 1)")
+	_assert(apt.get_node_or_null("MugMimic") != null, "B: mimic statique présent (round 1)")
 
 	# --- C : montée de la schizo ---
 	var s0: float = main.sanity
@@ -74,7 +75,7 @@ func _initialize() -> void:
 	drawer.interact()
 	await create_timer(0.6).timeout
 	_assert(drawer.is_open, "E: le tiroir s'ouvre")
-	_assert(drawer.position.z > -1.7, "E: le tiroir a glissé (z = %.2f)" % drawer.position.z)
+	_assert(drawer.position.z > -2.0, "E: le tiroir a glissé (z = %.2f)" % drawer.position.z)
 	drawer.interact()
 	await create_timer(0.6).timeout
 	_assert(not drawer.is_open, "E: le tiroir se referme")
