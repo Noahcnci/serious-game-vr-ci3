@@ -1,0 +1,292 @@
+[gd_scene load_steps=34 format=3 uid="uid://nevrose_map2_living"]
+
+; ============================================================
+; MAP 2 — SALON + CUISINE (fragment 2, GDD §7)
+; Pièce 8,0 x 6,0 m, hauteur 2,7 m, murs 0,15 m.
+;   x ∈ [-4, 4], z ∈ [-3, 3]
+;   Cuisine : le long du mur nord (z = -3)
+;   Salon   : moitié sud (z > 0)
+;   Fenêtre : mur ouest, centrée x = -4
+;   Porte   : mur est (x = +4), z ∈ [1,55, 2,45], h 2,1
+; Les meubles Kenney sont instanciés par scripts/map2_living.gd.
+; Chaque élément de la coquille a son PROPRE mesh et sa PROPRE collision.
+; ============================================================
+
+; ---------- Matériaux (procéduraux, teinte "folie" gérée par map_base) ----------
+
+[sub_resource type="StandardMaterial3D" id="mat_sol"]
+albedo_color = Color(0.42, 0.29, 0.2, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_mur"]
+albedo_color = Color(0.72, 0.65, 0.56, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_mur2"]
+albedo_color = Color(0.76, 0.7, 0.62, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_plafond"]
+albedo_color = Color(0.8, 0.77, 0.72, 1)
+roughness = 0.92
+
+[sub_resource type="StandardMaterial3D" id="mat_noir"]
+albedo_color = Color(0.04, 0.04, 0.05, 1)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_vitre"]
+albedo_color = Color(0.14, 0.2, 0.32, 1)
+emission_enabled = true
+emission = Color(0.14, 0.2, 0.32, 1)
+emission_energy_multiplier = 0.55
+roughness = 0.6
+
+; ---------- Mesh + collision UNIQUES par élément ----------
+
+[sub_resource type="BoxMesh" id="mesh_floor"]
+size = Vector3(8.6, 0.1, 6.6)
+
+[sub_resource type="BoxShape3D" id="shape_floor"]
+size = Vector3(8.6, 0.1, 6.6)
+
+[sub_resource type="BoxMesh" id="mesh_ceil"]
+size = Vector3(8.6, 0.1, 6.6)
+
+[sub_resource type="BoxShape3D" id="shape_ceil"]
+size = Vector3(8.6, 0.1, 6.6)
+
+; Mur nord (plein)
+[sub_resource type="BoxMesh" id="mesh_walln"]
+size = Vector3(8.6, 2.7, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_walln"]
+size = Vector3(8.6, 2.7, 0.15)
+
+; Mur sud (plein)
+[sub_resource type="BoxMesh" id="mesh_walls"]
+size = Vector3(8.6, 2.7, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_walls"]
+size = Vector3(8.6, 2.7, 0.15)
+
+; Mur est : segment nord de la porte (z ∈ [-3, 1.55])
+[sub_resource type="BoxMesh" id="mesh_walle_n"]
+size = Vector3(0.15, 2.7, 4.55)
+
+[sub_resource type="BoxShape3D" id="shape_walle_n"]
+size = Vector3(0.15, 2.7, 4.55)
+
+; Mur est : segment sud de la porte (z ∈ [2.45, 3])
+[sub_resource type="BoxMesh" id="mesh_walle_s"]
+size = Vector3(0.15, 2.7, 0.55)
+
+[sub_resource type="BoxShape3D" id="shape_walle_s"]
+size = Vector3(0.15, 2.7, 0.55)
+
+; Mur est : linteau au-dessus de la porte
+[sub_resource type="BoxMesh" id="mesh_walle_l"]
+size = Vector3(0.15, 0.6, 0.9)
+
+[sub_resource type="BoxShape3D" id="shape_walle_l"]
+size = Vector3(0.15, 0.6, 0.9)
+
+; Mur ouest : haut au-dessus de la fenêtre
+[sub_resource type="BoxMesh" id="mesh_wallw_t"]
+size = Vector3(0.15, 0.6, 6.6)
+
+[sub_resource type="BoxShape3D" id="shape_wallw_t"]
+size = Vector3(0.15, 0.6, 6.6)
+
+; Mur ouest : segment nord de la fenêtre (z ∈ [-3, -0.8])
+[sub_resource type="BoxMesh" id="mesh_wallw_n"]
+size = Vector3(0.15, 2.1, 2.2)
+
+[sub_resource type="BoxShape3D" id="shape_wallw_n"]
+size = Vector3(0.15, 2.1, 2.2)
+
+; Mur ouest : segment sud de la fenêtre (z ∈ [0.8, 3])
+[sub_resource type="BoxMesh" id="mesh_wallw_s"]
+size = Vector3(0.15, 2.1, 2.2)
+
+[sub_resource type="BoxShape3D" id="shape_wallw_s"]
+size = Vector3(0.15, 2.1, 2.2)
+
+; Mur ouest : sous la fenêtre
+[sub_resource type="BoxMesh" id="mesh_wallw_b"]
+size = Vector3(0.15, 0.9, 1.6)
+
+[sub_resource type="BoxShape3D" id="shape_wallw_b"]
+size = Vector3(0.15, 0.9, 1.6)
+
+; Couloir noir derrière la porte
+[sub_resource type="BoxMesh" id="mesh_corrfloor"]
+size = Vector3(1.8, 0.1, 1.2)
+
+[sub_resource type="BoxShape3D" id="shape_corrfloor"]
+size = Vector3(1.8, 0.1, 1.2)
+
+[sub_resource type="BoxMesh" id="mesh_corrend"]
+size = Vector3(0.15, 2.7, 1.2)
+
+[sub_resource type="BoxShape3D" id="shape_corrend"]
+size = Vector3(0.15, 2.7, 1.2)
+
+; Vitre de la fenêtre (mesh propre, émissif nuit bleue)
+[sub_resource type="BoxMesh" id="mesh_pane"]
+size = Vector3(0.04, 1.2, 1.58)
+
+; ============================================================
+; NŒUDS
+; ============================================================
+
+[node name="Map2Living" type="Node3D"]
+
+; ---------- SOL ----------
+
+[node name="Floor" type="StaticBody3D" parent="."]
+position = Vector3(0, -0.05, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("mesh_floor")
+material_override = SubResource("mat_sol")
+
+[node name="Collision" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("shape_floor")
+
+; ---------- PLAFOND ----------
+
+[node name="Ceiling" type="StaticBody3D" parent="."]
+position = Vector3(0, 2.75, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="Ceiling"]
+mesh = SubResource("mesh_ceil")
+material_override = SubResource("mat_plafond")
+
+[node name="Collision" type="CollisionShape3D" parent="Ceiling"]
+shape = SubResource("shape_ceil")
+
+; ---------- MUR NORD (cuisine, plein) ----------
+
+[node name="WallN" type="StaticBody3D" parent="."]
+position = Vector3(0, 1.35, -3.075)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallN"]
+mesh = SubResource("mesh_walln")
+material_override = SubResource("mat_mur")
+
+[node name="Collision" type="CollisionShape3D" parent="WallN"]
+shape = SubResource("shape_walln")
+
+; ---------- MUR SUD (salon, plein) ----------
+
+[node name="WallS" type="StaticBody3D" parent="."]
+position = Vector3(0, 1.35, 3.075)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallS"]
+mesh = SubResource("mesh_walls")
+material_override = SubResource("mat_mur")
+
+[node name="Collision" type="CollisionShape3D" parent="WallS"]
+shape = SubResource("shape_walls")
+
+; ---------- MUR EST (porte z ∈ [1.55, 2.45]) ----------
+
+[node name="WallE_North" type="StaticBody3D" parent="."]
+position = Vector3(4.075, 1.35, -0.725)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallE_North"]
+mesh = SubResource("mesh_walle_n")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallE_North"]
+shape = SubResource("shape_walle_n")
+
+[node name="WallE_South" type="StaticBody3D" parent="."]
+position = Vector3(4.075, 1.35, 2.725)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallE_South"]
+mesh = SubResource("mesh_walle_s")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallE_South"]
+shape = SubResource("shape_walle_s")
+
+[node name="WallE_Lintel" type="StaticBody3D" parent="."]
+position = Vector3(4.075, 2.4, 2.0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallE_Lintel"]
+mesh = SubResource("mesh_walle_l")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallE_Lintel"]
+shape = SubResource("shape_walle_l")
+
+; ---------- MUR OUEST (fenêtre z ∈ [-0.8, 0.8], y ∈ [0.9, 2.1]) ----------
+
+[node name="WallW_Top" type="StaticBody3D" parent="."]
+position = Vector3(-4.075, 2.4, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallW_Top"]
+mesh = SubResource("mesh_wallw_t")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallW_Top"]
+shape = SubResource("shape_wallw_t")
+
+[node name="WallW_North" type="StaticBody3D" parent="."]
+position = Vector3(-4.075, 1.05, -1.9)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallW_North"]
+mesh = SubResource("mesh_wallw_n")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallW_North"]
+shape = SubResource("shape_wallw_n")
+
+[node name="WallW_South" type="StaticBody3D" parent="."]
+position = Vector3(-4.075, 1.05, 1.9)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallW_South"]
+mesh = SubResource("mesh_wallw_s")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallW_South"]
+shape = SubResource("shape_wallw_s")
+
+[node name="WallW_Bottom" type="StaticBody3D" parent="."]
+position = Vector3(-4.075, 0.45, 0)
+
+[node name="Mesh" type="MeshInstance3D" parent="WallW_Bottom"]
+mesh = SubResource("mesh_wallw_b")
+material_override = SubResource("mat_mur2")
+
+[node name="Collision" type="CollisionShape3D" parent="WallW_Bottom"]
+shape = SubResource("shape_wallw_b")
+
+; Vitre de la fenêtre (émissive, nuit bleue) — visuel seul, pas de collision
+[node name="WindowPane" type="MeshInstance3D" parent="."]
+position = Vector3(-4.0, 1.5, 0)
+mesh = SubResource("mesh_pane")
+material_override = SubResource("mat_vitre")
+
+; ---------- COULOIR NOIR (derrière la porte est) ----------
+
+[node name="CorrFloor" type="StaticBody3D" parent="."]
+position = Vector3(4.975, -0.05, 2.0)
+
+[node name="Mesh" type="MeshInstance3D" parent="CorrFloor"]
+mesh = SubResource("mesh_corrfloor")
+material_override = SubResource("mat_noir")
+
+[node name="Collision" type="CollisionShape3D" parent="CorrFloor"]
+shape = SubResource("shape_corrfloor")
+
+[node name="CorrEnd" type="StaticBody3D" parent="."]
+position = Vector3(5.875, 1.35, 2.0)
+
+[node name="Mesh" type="MeshInstance3D" parent="CorrEnd"]
+mesh = SubResource("mesh_corrend")
+material_override = SubResource("mat_noir")
+
+[node name="Collision" type="CollisionShape3D" parent="CorrEnd"]
+shape = SubResource("shape_corrend")
