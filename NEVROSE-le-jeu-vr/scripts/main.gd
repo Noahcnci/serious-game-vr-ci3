@@ -571,12 +571,12 @@ func spawn_mobile_mimic() -> void:
 	m.move_speed = 0.35
 	m.attract_target = xr_camera
 	add_child(m)
-	# Spawn aux bords de la pièce (loin du joueur)
+	# Spawn aux 4 coins de la pièce (map 8x6 m — loin du joueur)
 	var edges := [
-		Vector3(-2.8, 0.0, -2.0),
-		Vector3(2.8, 0.0, -2.0),
-		Vector3(-2.8, 0.0, 2.0),
-		Vector3(2.8, 0.0, 2.0),
+		Vector3(-3.4, 0.0, -2.4),
+		Vector3(3.4, 0.0, -2.4),
+		Vector3(-3.4, 0.0, 2.4),
+		Vector3(3.4, 0.0, 2.4),
 	]
 	m.position = edges.pick_random()
 	_log("GAME", "mimic mobile spawné à %s" % m.position)

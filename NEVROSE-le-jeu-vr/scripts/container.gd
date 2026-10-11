@@ -129,11 +129,20 @@ func _unlock() -> void:
 
 
 func _flash_locked() -> void:
-	if not front_mesh:
+	# Feedback visuel : flash rouge sur la face verrouillée.
+	# On tween la couleur du matériau (pas self_modulate — inexistant sur
+	# MeshInstance3D) pour signaler "verrouillé, il faut une clé".
+	if not front_mesh or not _mat_locked:
 		return
+	var mat := front_mesh.material_override as StandardMaterial3D
+	if mat == null:
+		return
+	var base: Color = mat.albedo_color
+	var flash := base
+	flash.a = 0.9
 	var tw := create_tween()
-	tw.tween_property(front_mesh, "self_modulate:a", 1.0, 0.05)
-	tw.tween_property(front_mesh, "self_modulate:a", 0.0, 0.15)
+	tw.tween_property(mat, "albedo_color", flash, 0.05)
+	tw.tween_property(mat, "albedo_color", base, 0.25)
 
 
 func _make_unlock_mat() -> Material:

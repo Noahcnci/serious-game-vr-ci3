@@ -1,21 +1,22 @@
-[gd_scene load_steps=34 format=3 uid="uid://nevrose_map2_living"]
+[gd_scene load_steps=60 format=3 uid="uid://nevrose_map2_living"]
 
 ; ============================================================
 ; MAP 2 — SALON + CUISINE (fragment 2, GDD §7)
 ; Pièce 8,0 x 6,0 m, hauteur 2,7 m, murs 0,15 m.
 ;   x ∈ [-4, 4], z ∈ [-3, 3]
-;   Cuisine : le long du mur nord (z = -3)
-;   Salon   : moitié sud (z > 0)
-;   Fenêtre : mur ouest, centrée x = -4
-;   Porte   : mur est (x = +4), z ∈ [1,55, 2,45], h 2,1
+;   Cuisine : tiers nord (z < -1)
+;   Salon   : deux tiers sud (z > 0)
+;   Fenêtre : mur ouest, centrée z = 0, y ∈ [0.9, 2.1], 1.60 m de large
+;   Porte   : mur est (x = +4), z ∈ [1.55, 2.45], h 2.1
 ; Les meubles Kenney sont instanciés par scripts/map2_living.gd.
 ; Chaque élément de la coquille a son PROPRE mesh et sa PROPRE collision.
+; Les décors statiques (plinthes, cadres, moulures) sont éditables ici.
 ; ============================================================
 
 ; ---------- Matériaux (procéduraux, teinte "folie" gérée par map_base) ----------
 
 [sub_resource type="StandardMaterial3D" id="mat_sol"]
-albedo_color = Color(0.42, 0.29, 0.2, 1)
+albedo_color = Color(0.40, 0.27, 0.18, 1)
 roughness = 0.92
 
 [sub_resource type="StandardMaterial3D" id="mat_mur"]
@@ -23,11 +24,11 @@ albedo_color = Color(0.72, 0.65, 0.56, 1)
 roughness = 0.92
 
 [sub_resource type="StandardMaterial3D" id="mat_mur2"]
-albedo_color = Color(0.76, 0.7, 0.62, 1)
+albedo_color = Color(0.76, 0.70, 0.62, 1)
 roughness = 0.92
 
 [sub_resource type="StandardMaterial3D" id="mat_plafond"]
-albedo_color = Color(0.8, 0.77, 0.72, 1)
+albedo_color = Color(0.80, 0.77, 0.72, 1)
 roughness = 0.92
 
 [sub_resource type="StandardMaterial3D" id="mat_noir"]
@@ -35,13 +36,25 @@ albedo_color = Color(0.04, 0.04, 0.05, 1)
 roughness = 0.9
 
 [sub_resource type="StandardMaterial3D" id="mat_vitre"]
-albedo_color = Color(0.14, 0.2, 0.32, 1)
+albedo_color = Color(0.10, 0.15, 0.28, 1)
 emission_enabled = true
-emission = Color(0.14, 0.2, 0.32, 1)
-emission_energy_multiplier = 0.55
-roughness = 0.6
+emission = Color(0.10, 0.15, 0.28, 1)
+emission_energy_multiplier = 0.5
+roughness = 0.5
 
-; ---------- Mesh + collision UNIQUES par élément ----------
+[sub_resource type="StandardMaterial3D" id="mat_bois_fonce"]
+albedo_color = Color(0.24, 0.16, 0.11, 1)
+roughness = 0.88
+
+[sub_resource type="StandardMaterial3D" id="mat_cadre"]
+albedo_color = Color(0.85, 0.82, 0.76, 1)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="mat_photo"]
+albedo_color = Color(0.30, 0.35, 0.42, 1)
+roughness = 0.92
+
+; ---------- Mesh + collision UNIQUES par élément structurel ----------
 
 [sub_resource type="BoxMesh" id="mesh_floor"]
 size = Vector3(8.6, 0.1, 6.6)
@@ -134,6 +147,45 @@ size = Vector3(0.15, 2.7, 1.2)
 ; Vitre de la fenêtre (mesh propre, émissif nuit bleue)
 [sub_resource type="BoxMesh" id="mesh_pane"]
 size = Vector3(0.04, 1.2, 1.58)
+
+; ---------- Décors statiques ----------
+
+; Plinthes (le long de chaque mur, h 0.08, ép 0.02)
+[sub_resource type="BoxMesh" id="mesh_plinthe_n"]
+size = Vector3(8.0, 0.08, 0.02)
+
+[sub_resource type="BoxMesh" id="mesh_plinthe_s"]
+size = Vector3(8.0, 0.08, 0.02)
+
+[sub_resource type="BoxMesh" id="mesh_plinthe_e"]
+size = Vector3(0.02, 0.08, 6.0)
+
+[sub_resource type="BoxMesh" id="mesh_plinthe_w"]
+size = Vector3(0.02, 0.08, 6.0)
+
+; Cadre de fenêtre : 2 montants verticaux + 1 traverse horizontale + 1 appui
+[sub_resource type="BoxMesh" id="mesh_fen_montant"]
+size = Vector3(0.06, 1.24, 0.06)
+
+[sub_resource type="BoxMesh" id="mesh_fen_traverse"]
+size = Vector3(0.06, 0.05, 1.60)
+
+[sub_resource type="BoxMesh" id="mesh_fen_appui"]
+size = Vector3(0.10, 0.04, 1.72)
+
+; Encadrement de porte : 2 montants + linteau décoratif
+[sub_resource type="BoxMesh" id="mesh_porte_montant"]
+size = Vector3(0.06, 2.14, 0.10)
+
+[sub_resource type="BoxMesh" id="mesh_porte_linteau"]
+size = Vector3(0.06, 0.10, 1.02)
+
+; Cadre photo au mur sud
+[sub_resource type="BoxMesh" id="mesh_cadre_photo"]
+size = Vector3(0.44, 0.56, 0.03)
+
+[sub_resource type="BoxMesh" id="mesh_photo_interieur"]
+size = Vector3(0.36, 0.48, 0.035)
 
 ; ============================================================
 ; NŒUDS
@@ -290,3 +342,80 @@ material_override = SubResource("mat_noir")
 
 [node name="Collision" type="CollisionShape3D" parent="CorrEnd"]
 shape = SubResource("shape_corrend")
+
+; ============================================================
+; DÉCORS STATIQUES
+; ============================================================
+
+; ---------- PLINTHES ----------
+
+[node name="PlintheN" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, -2.99)
+mesh = SubResource("mesh_plinthe_n")
+material_override = SubResource("mat_bois_fonce")
+
+[node name="PlintheS" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.04, 2.99)
+mesh = SubResource("mesh_plinthe_s")
+material_override = SubResource("mat_bois_fonce")
+
+[node name="PlintheE" type="MeshInstance3D" parent="."]
+position = Vector3(3.99, 0.04, 0)
+mesh = SubResource("mesh_plinthe_e")
+material_override = SubResource("mat_bois_fonce")
+
+[node name="PlintheW" type="MeshInstance3D" parent="."]
+position = Vector3(-3.99, 0.04, 0)
+mesh = SubResource("mesh_plinthe_w")
+material_override = SubResource("mat_bois_fonce")
+
+; ---------- CADRE DE FENÊTRE ----------
+
+[node name="FenMontantN" type="MeshInstance3D" parent="."]
+position = Vector3(-3.96, 1.5, -0.83)
+mesh = SubResource("mesh_fen_montant")
+material_override = SubResource("mat_cadre")
+
+[node name="FenMontantS" type="MeshInstance3D" parent="."]
+position = Vector3(-3.96, 1.5, 0.83)
+mesh = SubResource("mesh_fen_montant")
+material_override = SubResource("mat_cadre")
+
+[node name="FenTraverse" type="MeshInstance3D" parent="."]
+position = Vector3(-3.96, 1.5, 0)
+mesh = SubResource("mesh_fen_traverse")
+material_override = SubResource("mat_cadre")
+
+[node name="FenAppui" type="MeshInstance3D" parent="."]
+position = Vector3(-3.95, 0.92, 0)
+mesh = SubResource("mesh_fen_appui")
+material_override = SubResource("mat_cadre")
+
+; ---------- ENCADREMENT DE PORTE ----------
+
+[node name="PorteMontantN" type="MeshInstance3D" parent="."]
+position = Vector3(3.96, 1.07, 1.50)
+mesh = SubResource("mesh_porte_montant")
+material_override = SubResource("mat_cadre")
+
+[node name="PorteMontantS" type="MeshInstance3D" parent="."]
+position = Vector3(3.96, 1.07, 2.50)
+mesh = SubResource("mesh_porte_montant")
+material_override = SubResource("mat_cadre")
+
+[node name="PorteLinteau" type="MeshInstance3D" parent="."]
+position = Vector3(3.96, 2.16, 2.0)
+mesh = SubResource("mesh_porte_linteau")
+material_override = SubResource("mat_cadre")
+
+; ---------- CADRE PHOTO (mur sud) ----------
+
+[node name="CadrePhoto" type="MeshInstance3D" parent="."]
+position = Vector3(-1.5, 1.6, 2.97)
+mesh = SubResource("mesh_cadre_photo")
+material_override = SubResource("mat_cadre")
+
+[node name="PhotoInterieur" type="MeshInstance3D" parent="."]
+position = Vector3(-1.5, 1.6, 2.955)
+mesh = SubResource("mesh_photo_interieur")
+material_override = SubResource("mat_photo")

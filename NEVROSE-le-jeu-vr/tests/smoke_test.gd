@@ -50,6 +50,8 @@ func _initialize() -> void:
 	_assert(apt.get_node_or_null("LivingRoom") != null, "B: salon construit")
 	_assert(apt.containers.size() >= 5, "B: conteneurs interactifs (tiroirs + placard) : %d" % apt.containers.size())
 	_assert(apt.get_node_or_null("MugMimic") != null, "B: mimic statique présent (round 1)")
+	_assert(apt.get_node_or_null("SideTableMimic") != null, "B: 2e mimic statique présent (table d'appoint)")
+	_assert(apt.mimics.size() >= 2, "B: au moins 2 mimics dans la map : %d" % apt.mimics.size())
 
 	# --- C : montée de la schizo ---
 	var s0: float = main.sanity
@@ -66,16 +68,18 @@ func _initialize() -> void:
 	_assert(main.dose_count == 1, "D: compteur de doses = 1")
 
 	# --- E : conteneur ---
+	# On prend le premier tiroir NON verrouillé (un tiroir verrouillé
+	# répondrait par un flash "verrouillé" au lieu de s'ouvrir).
 	var drawer: InteractiveContainer = null
 	for c in apt.containers:
-		if c.mode == InteractiveContainer.Mode.SLIDE:
+		if c.mode == InteractiveContainer.Mode.SLIDE and not c.is_locked:
 			drawer = c
 			break
 	_assert(drawer != null, "E: tiroir trouvé")
 	drawer.interact()
 	await create_timer(0.6).timeout
 	_assert(drawer.is_open, "E: le tiroir s'ouvre")
-	_assert(drawer.position.z > -2.0, "E: le tiroir a glissé (z = %.2f)" % drawer.position.z)
+	_assert(drawer.position.z > -2.1, "E: le tiroir a glissé (z = %.2f)" % drawer.position.z)
 	drawer.interact()
 	await create_timer(0.6).timeout
 	_assert(not drawer.is_open, "E: le tiroir se referme")
