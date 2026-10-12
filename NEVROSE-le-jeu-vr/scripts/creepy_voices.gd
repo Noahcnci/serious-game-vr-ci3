@@ -56,7 +56,9 @@ func configure_room(w: float, d: float, h: float) -> void:
 	]
 
 var _players: Array[AudioStreamPlayer3D] = []
-var _streams: Array[AudioStreamWAV] = []
+var _streams: Array[AudioStream] = []
+var _notif_player: AudioStreamPlayer = null
+var _notif_stream: AudioStream = null
 var _cooldown := 0.0
 var _voice_idx := 0
 var enabled := true
@@ -65,9 +67,9 @@ var enabled := true
 const BASE_COOLDOWN := 12.0 ## ~12 s à sanity=0
 const MIN_COOLDOWN := 3.0   ## ~3 s à sanity=100
 
-## Volume max (dB) — les voix sont sourdes, pas criantes.
-const MAX_VOLUME_DB := -4.0
-const MIN_VOLUME_DB := -18.0
+## Volume max (dB) — ajusté pour petits haut-parleurs Quest 2 (-10.0 à -2.0 dB)
+const MAX_VOLUME_DB := -2.0
+const MIN_VOLUME_DB := -10.0
 
 
 func _ready() -> void:
@@ -76,28 +78,17 @@ func _ready() -> void:
 
 
 func _load_voices() -> void:
-	var dir := DirAccess.open(VOICE_DIR)
-	if dir == null:
-		push_warning("Voix : dossier %s inaccessible" % VOICE_DIR)
-		return
-	var files: Array[String] = []
-	dir.list_dir_begin()
-	var fname: String = dir.get_next()
-	while fname != "":
-		if fname.ends_with(".wav") and not fname.begins_with("raw_"):
-			files.append(fname)
-		fname = dir.get_next()
-	dir.list_dir_end()
-	files.sort()
-	_streams.resize(files.size())
-	var loaded := 0
-	for i in files.size():
-		var stream: AudioStreamWAV = load(VOICE_DIR + files[i])
-		if stream:
-			stream.loop_mode = AudioStreamWAV.LOOP_DISABLED
-			_streams[i] = stream
-			loaded += 1
-	_log("AUDIO", "Voix : %d fichiers chargés" % loaded)
+	_streams.clear()
+	for i in range(1, VOICE_COUNT + 1):
+		var path := "%sv%02d.wav" % [VOICE_DIR, i]
+		if ResourceLoader.exists(path):
+			var s = load(path)
+			if s is AudioStream:
+				if s is AudioStreamWAV:
+					(s as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_DISABLED
+				_streams.append(s)
+	print("[AUDIO] Voix : %d fichiers chargés" % _streams.size())
+	_log("AUDIO", "Voix : %d fichiers chargés" % _streams.size())
 
 
 func _create_players() -> void:
@@ -109,6 +100,43 @@ func _create_players() -> void:
 		p.position = PLACEMENTS[i % PLACEMENTS.size()]
 		add_child(p)
 		_players.append(p)
+	_create_notification_player()
+
+
+func _create_notification_player() -> void:
+	if _notif_player != null:
+		return
+	_notif_player = AudioStreamPlayer.new()
+	_notif_player.name = "NotificationPlayer"
+	_notif_player.bus = "Master"
+	_notif_player.volume_db = -4.0
+	_notif_stream = _synthesize_notification_sound()
+	_notif_player.stream = _notif_stream
+	add_child(_notif_player)
+
+
+func _synthesize_notification_sound() -> AudioStreamWAV:
+	# Synthèse d'un carillon Messenger clair à deux tons (880Hz -> 1174Hz)
+	var sample_rate := 22050
+	var duration := 0.25 # 250 ms
+	var total_frames := int(sample_rate * duration)
+	var half_frames := total_frames / 2
+	var data := PackedByteArray()
+	data.resize(total_frames * 2)
+
+	for i in total_frames:
+		var freq: float = 880.0 if i < half_frames else 1174.66
+		var env: float = 1.0 - float(i % half_frames) / float(half_frames)
+		var sample: float = sin(TAU * freq * (float(i) / float(sample_rate))) * env * 0.45
+		var val: int = clampi(int(sample * 32767.0), -32768, 32767)
+		data.encode_s16(i * 2, val)
+
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = sample_rate
+	wav.stereo = false
+	wav.data = data
+	return wav
 
 
 ## Appelé par main.gd à chaque frame (ou tick).
@@ -120,8 +148,8 @@ func tick(t: float, delta: float) -> void:
 	_cooldown -= delta
 	if _cooldown > 0.0:
 		return
-	# Seuil : ne jouer qu'à partir de 20% de schizo
-	if t < 0.2:
+	# Seuil : murmure possible dès 5% de schizo (au lieu de 20%)
+	if t < 0.05:
 		_cooldown = BASE_COOLDOWN * (1.0 - t)
 		return
 	# Jouer une voix
@@ -146,7 +174,7 @@ func _play_random_voice(t: float) -> void:
 	while idx == _voice_idx and _streams.size() > 1:
 		idx = randi_range(0, _streams.size() - 1)
 	_voice_idx = idx
-	var stream: AudioStreamWAV = _streams[idx]
+	var stream: AudioStream = _streams[idx]
 	if stream == null:
 		return
 
@@ -154,7 +182,7 @@ func _play_random_voice(t: float) -> void:
 	var pos_idx := randi_range(0, PLACEMENTS.size() - 1)
 	free_player.position = PLACEMENTS[pos_idx]
 
-	# Volume : plus la schizo monte, plus c'est fort
+	# Volume : plus la schizo monte, plus c'est fort (-10.0 à -2.0 dB)
 	free_player.volume_db = lerpf(MIN_VOLUME_DB, MAX_VOLUME_DB, t)
 
 	# Pitch : légèrement aléatoire (varie entre lectures)
@@ -163,6 +191,29 @@ func _play_random_voice(t: float) -> void:
 	free_player.stream = stream
 	free_player.play()
 	_log("VOIX", "voix #%d jouée à %s (sanity=%.0f)" % [idx + 1, str(PLACEMENTS[pos_idx]), t * 100.0])
+
+
+## Joue un premier murmure discret dès le démarrage pour confirmer l'audio
+func play_intro_whisper() -> void:
+	if not enabled or _streams.is_empty() or _players.is_empty():
+		return
+	var p: AudioStreamPlayer3D = _players[0]
+	p.stream = _streams[0]
+	p.volume_db = MIN_VOLUME_DB
+	p.position = PLACEMENTS[0]
+	p.play()
+	_log("AUDIO", "Murmure d'introduction joué")
+
+
+## Joue un son de notification Messenger clair (téléphone / message reçu)
+func play_notification() -> void:
+	if not enabled:
+		return
+	if _notif_player == null and is_inside_tree():
+		_create_notification_player()
+	if _notif_player != null and _notif_player.is_inside_tree():
+		_notif_player.play()
+		_log("AUDIO", "Notification Messenger jouée")
 
 
 func _log(cat: String, msg: String) -> void:

@@ -44,6 +44,9 @@ var _left_hand_mesh: Node3D = null
 var _right_hand_mesh: Node3D = null
 var _body: VRBody = null
 var _held_key: KeyObject = null ## Clé actuellement dans la main (GDD §5.6)
+var phone: Phone = null ## Smartphone avec Messenger
+var vr_intro_panel: Node3D = null ## Panneau d'introduction et tutoriel 3D
+var vr_gameover_label: Label3D = null ## Game over 3D visible dans le casque OpenXR
 const HAND_SCENE_R := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/right_hand_low.tscn")
 const HAND_SCENE_L := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/left_hand_low.tscn")
 # Distance max pour interagir "au contact" (proximité) sans viser au rayon
@@ -117,9 +120,14 @@ func _ready() -> void:
 	_build_world()
 	_build_player_body()
 	_build_hud()
+	_build_phone()
 	_register_debug_inputs()
+
+
 	_spawn_dose()
 	_update_chat("Tu as oublié ta dose. Elle est dans la pièce. Trouve-la.")
+	if creepy_voices:
+		creepy_voices.play_intro_whisper()
 
 
 # ---------------------------------------------------------------------------
@@ -176,6 +184,30 @@ func _build_world() -> void:
 	add_child(apartment)
 	apartment.build()
 	_log("WORLD", "map salon+cuisine construite : %d nœuds" % apartment.get_child_count())
+	# Note Post-it d'accueil sur le plan de travail de la cuisine
+	var note_root := Node3D.new()
+	note_root.name = "PostItNote"
+	note_root.position = Vector3(-0.6, 0.92, -2.15)
+	note_root.rotation_degrees = Vector3(-85.0, 10.0, 0.0)
+	add_child(note_root)
+
+	var note_quad := QuadMesh.new()
+	note_quad.size = Vector2(0.24, 0.24)
+	var note_mesh := MeshInstance3D.new()
+	note_mesh.mesh = note_quad
+	var note_mat := StandardMaterial3D.new()
+	note_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	note_mat.albedo_color = Color(1.0, 0.92, 0.45)
+	note_mesh.material_override = note_mat
+	note_root.add_child(note_mesh)
+
+	var note_txt := Label3D.new()
+	note_txt.text = "N'OUBLIE PAS\nTA DOSE !\n\nFouille les tiroirs.\nGâchette = ouvrir\nBouton Y = téléphone"
+	note_txt.font_size = 28
+	note_txt.pixel_size = 0.0014
+	note_txt.modulate = Color(0.1, 0.1, 0.12)
+	note_txt.position = Vector3(0.0, 0.0, 0.005)
+	note_root.add_child(note_txt)
 	# GDD §5.6 : signaux verrous (clé / force → bruit → mimic)
 	for c in apartment.containers:
 		if c.lock_type != InteractiveContainer.LockType.NONE:
@@ -200,12 +232,13 @@ func _build_player_body() -> void:
 	_left_hand_mesh = HAND_SCENE_L.instantiate()
 	left_hand.add_child(_left_hand_mesh)
 	_log("WORLD", "mains animées (godot-xr-tools) attachées : grip=pointer, grip+trigger=saisir")
-
 	_body = VRBody.new()
 	_body.name = "PlayerBody"
 	xr_origin.add_child(_body)
 	_body.setup(xr_camera)
 	_log("WORLD", "corps FPV ajouté (visible en baissant les yeux)")
+
+
 
 
 # ---------------------------------------------------------------------------
@@ -255,7 +288,56 @@ func _build_hud() -> void:
 	gameover_label.add_theme_color_override("font_color", Color(0.85, 0.1, 0.1))
 	gameover_label.visible = false
 	hud.add_child(gameover_label)
-	_log("HUD", "HUD prêt : vignette + point central + chat + game over")
+
+	# Panneau 3D d'introduction et commandes VR (visible dans le casque)
+	vr_intro_panel = Node3D.new()
+	vr_intro_panel.name = "VRIntroPanel"
+	xr_camera.add_child(vr_intro_panel)
+	vr_intro_panel.position = Vector3(0.0, -0.05, -1.2)
+
+	var panel_quad := QuadMesh.new()
+	panel_quad.size = Vector2(0.95, 0.6)
+	var panel_mesh := MeshInstance3D.new()
+	panel_mesh.mesh = panel_quad
+	var panel_mat := StandardMaterial3D.new()
+	panel_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+	panel_mat.albedo_color = Color(0.04, 0.06, 0.1, 0.92)
+	panel_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	panel_mesh.material_override = panel_mat
+	vr_intro_panel.add_child(panel_mesh)
+
+	var intro_label := Label3D.new()
+	intro_label.text = "[ NÉVROSE ]\n\nTu as oublié ta dose de médicaments.\nFouille les meubles pour retrouver ta pilule\navant que la schizophrénie ne t'assimile.\n\n• Stick gauche : Se déplacer\n• Stick droit : Tourner (45°)\n• Gâchette droite : Viser et ouvrir\n• Bouton Y (manette gauche) : Sortir le téléphone Messenger\n\n(Appuie sur la gâchette pour commencer)"
+	intro_label.font_size = 20
+	intro_label.pixel_size = 0.0016
+	intro_label.modulate = Color(1.0, 1.0, 1.0)
+	intro_label.outline_size = 4
+	intro_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.9)
+	intro_label.position = Vector3(0.0, 0.0, 0.005)
+	vr_intro_panel.add_child(intro_label)
+
+	# Game Over 3D dans le casque
+	vr_gameover_label = Label3D.new()
+	vr_gameover_label.name = "VRGameOverLabel"
+	xr_camera.add_child(vr_gameover_label)
+	vr_gameover_label.position = Vector3(0.0, 0.0, -1.1)
+	vr_gameover_label.text = "L'APPART T'A ASSIMILÉ\n\nTu n'as pas pris ta dose à temps.\n\nAppuie sur la Gâchette pour recommencer"
+	vr_gameover_label.font_size = 32
+	vr_gameover_label.pixel_size = 0.0022
+	vr_gameover_label.modulate = Color(1.0, 0.2, 0.2)
+	vr_gameover_label.outline_size = 6
+	vr_gameover_label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
+	vr_gameover_label.visible = false
+
+	_log("HUD", "HUD prêt : vignette + point central + chat + game over + HUD 3D VR")
+
+
+func _build_phone() -> void:
+	phone = Phone.new()
+	phone.name = "Phone"
+	add_child(phone)
+	phone.setup_pocket(left_hand, right_hand, xr_camera)
+	_log("PHONE", "Smartphone Messenger initialisé (poche gauche)")
 
 
 # ---------------------------------------------------------------------------
@@ -272,6 +354,7 @@ func _register_debug_inputs() -> void:
 	_add_key_action(&"dbg_turn_left", [KEY_Q])
 	_add_key_action(&"dbg_turn_right", [KEY_E])
 	_add_key_action(&"dbg_interact", [KEY_F])
+	_add_key_action(&"dbg_phone", [KEY_TAB, KEY_T, KEY_P])
 	var ev := InputEventMouseButton.new()
 	ev.button_index = MOUSE_BUTTON_LEFT
 	_add_event_action(&"dbg_interact", ev)
@@ -421,6 +504,8 @@ func _tick_interaction_ray() -> void:
 
 
 func interact() -> void:
+	if vr_intro_panel and vr_intro_panel.visible:
+		vr_intro_panel.visible = false
 	if game_over:
 		_restart()
 		return
@@ -633,19 +718,27 @@ func _tick_chat(delta: float, t: float) -> void:
 	var remaining := (100.0 - sanity) / maxf(sanity_rate, 0.01)
 	var mm := int(remaining) / 60
 	var ss := int(remaining) % 60
+	var time_str := "%02d:%02d" % [mm, ss]
+	if phone:
+		phone.update_timer(time_str, sanity)
 	var pool: Array = CHAT_CALME
+	var is_alert := false
 	if t * 100.0 > FOLIE_CRITIQUE:
 		pool = CHAT_CRITIQUE
+		is_alert = true
 	elif t * 100.0 > FOLIE_LEGERE:
 		pool = CHAT_INQUIET
 	var line: String = pool[_creepy_idx % pool.size()]
 	_creepy_idx += 1
-	_update_chat("Il te reste %d:%02d avant que ça bascule.\n%s" % [mm, ss, line])
+	_update_chat("Il te reste %d:%02d avant que ça bascule.\n%s" % [mm, ss, line], line, is_alert)
 
 
-func _update_chat(text: String) -> void:
+func _update_chat(text: String, phone_line: String = "", is_alert: bool = false) -> void:
 	_chat_hold = 3.0
 	chat_label.text = text
+	if phone:
+		var msg: String = phone_line if not phone_line.is_empty() else text
+		phone.receive_message(msg, is_alert)
 
 
 func _trigger_game_over() -> void:
@@ -659,6 +752,8 @@ func _trigger_game_over() -> void:
 		"Gâchette / clic : recommencer (et perdre à nouveau)"
 	)
 	gameover_label.visible = true
+	if vr_gameover_label:
+		vr_gameover_label.visible = true
 	vignette_rect.material.set_shader_parameter(&"intensity", 1.0)
 
 
@@ -668,6 +763,8 @@ func _restart() -> void:
 	sanity_rate = SANITY_RATE
 	dose_count = 0
 	gameover_label.visible = false
+	if vr_gameover_label:
+		vr_gameover_label.visible = false
 	_consume_pill()
 	_consume_key()
 	apartment.reset_containers()
@@ -697,6 +794,11 @@ func _on_left_button_pressed(action_name: String) -> void:
 	if action_name == &"trigger":
 		interact()
 		return
+	# Boutons X/Y ou grip gauche = sortir / ranger le smartphone
+	if action_name in [&"ax_button", &"by_button", &"grip_click", &"primary_click"]:
+		if phone:
+			phone.toggle_pocket()
+		return
 	# Le menu pa gauche sert de reset rapide si le joueur est coincé.
 	if action_name == &"menu_button" and game_over:
 		_restart()
@@ -717,3 +819,6 @@ func _process(delta: float) -> void:
 			interact()
 		if Input.is_action_just_pressed(&"dbg_snap_right"):
 			snap_turn(1.0)
+	if Input.is_action_just_pressed(&"dbg_phone"):
+		if phone:
+			phone.toggle_pocket()

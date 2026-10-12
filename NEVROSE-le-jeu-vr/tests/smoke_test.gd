@@ -40,6 +40,12 @@ func _initialize() -> void:
 	_assert(main.get_node_or_null("XROrigin3D/LeftHand") != null, "A: manette gauche présente")
 	_assert(main.get_node_or_null("XROrigin3D/RightHand") != null, "A: manette droite présente")
 	_assert(main.is_xr_active() == false, "A: headless = fallback bureau (OpenXR inactif)")
+	_assert(main.phone != null, "A: smartphone Messenger présent")
+	_assert(not main.phone.is_in_hand, "A: téléphone initialement dans la poche")
+	main.phone.toggle_pocket()
+	_assert(main.phone.is_in_hand, "A: sortie du téléphone de la poche vers la main")
+	main.phone.toggle_pocket()
+	_assert(not main.phone.is_in_hand, "A: retour du téléphone dans la poche")
 
 	# --- B : appartement (Map2Living — salon + cuisine) ---
 	var apt: MapBase = main.apartment
