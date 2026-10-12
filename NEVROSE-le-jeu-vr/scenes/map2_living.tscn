@@ -1,60 +1,17 @@
-[gd_scene load_steps=60 format=3 uid="uid://nevrose_map2_living"]
+[gd_scene format=3 uid="uid://d32yl1ieggleh"]
 
-; ============================================================
-; MAP 2 — SALON + CUISINE (fragment 2, GDD §7)
-; Pièce 8,0 x 6,0 m, hauteur 2,7 m, murs 0,15 m.
-;   x ∈ [-4, 4], z ∈ [-3, 3]
-;   Cuisine : tiers nord (z < -1)
-;   Salon   : deux tiers sud (z > 0)
-;   Fenêtre : mur ouest, centrée z = 0, y ∈ [0.9, 2.1], 1.60 m de large
-;   Porte   : mur est (x = +4), z ∈ [1.55, 2.45], h 2.1
-; Les meubles Kenney sont instanciés par scripts/map2_living.gd.
-; Chaque élément de la coquille a son PROPRE mesh et sa PROPRE collision.
-; Les décors statiques (plinthes, cadres, moulures) sont éditables ici.
-; ============================================================
-
-; ---------- Matériaux ----------
+[ext_resource type="PackedScene" uid="uid://cfdu1y7t7cw6a" path="res://assets/kenney/furniture/chair.glb" id="1_dac35"]
+[ext_resource type="PackedScene" uid="uid://dq78xj3mu0f5h" path="res://assets/kenney/furniture/table.glb" id="2_hugno"]
+[ext_resource type="PackedScene" uid="uid://b6ed5q70dth8l" path="res://assets/kenney/furniture/kitchenFridge.glb" id="3_d3lit"]
+[ext_resource type="PackedScene" uid="uid://cavlb4krpp7ek" path="res://assets/kenney/furniture/sideTableDrawers.glb" id="4_ph6bl"]
+[ext_resource type="PackedScene" uid="uid://dm4mdg4yf0g1m" path="res://assets/kenney/furniture/televisionModern.glb" id="5_b8no4"]
+[ext_resource type="PackedScene" uid="uid://l4kvwtsi5lr8" path="res://assets/kenney/furniture/rugRounded.glb" id="6_c1k2s"]
+[ext_resource type="PackedScene" uid="uid://d2uwqh0i6dt74" path="res://assets/kenney/furniture/rugRound.glb" id="7_i5ljf"]
+[ext_resource type="PackedScene" uid="uid://rolbl4ed8a8d" path="res://assets/kenney/furniture/loungeSofa.glb" id="8_d3lit"]
 
 [sub_resource type="StandardMaterial3D" id="mat_sol"]
-albedo_color = Color(0.40, 0.27, 0.18, 1)
+albedo_color = Color(0.4, 0.27, 0.18, 1)
 roughness = 0.92
-
-[sub_resource type="StandardMaterial3D" id="mat_mur"]
-albedo_color = Color(0.72, 0.65, 0.56, 1)
-roughness = 0.92
-
-[sub_resource type="StandardMaterial3D" id="mat_mur2"]
-albedo_color = Color(0.76, 0.70, 0.62, 1)
-roughness = 0.92
-
-[sub_resource type="StandardMaterial3D" id="mat_plafond"]
-albedo_color = Color(0.80, 0.77, 0.72, 1)
-roughness = 0.92
-
-[sub_resource type="StandardMaterial3D" id="mat_noir"]
-albedo_color = Color(0.04, 0.04, 0.05, 1)
-roughness = 0.9
-
-[sub_resource type="StandardMaterial3D" id="mat_vitre"]
-albedo_color = Color(0.10, 0.15, 0.28, 1)
-emission_enabled = true
-emission = Color(0.10, 0.15, 0.28, 1)
-emission_energy_multiplier = 0.5
-roughness = 0.5
-
-[sub_resource type="StandardMaterial3D" id="mat_bois_fonce"]
-albedo_color = Color(0.24, 0.16, 0.11, 1)
-roughness = 0.88
-
-[sub_resource type="StandardMaterial3D" id="mat_cadre"]
-albedo_color = Color(0.85, 0.82, 0.76, 1)
-roughness = 0.85
-
-[sub_resource type="StandardMaterial3D" id="mat_photo"]
-albedo_color = Color(0.30, 0.35, 0.42, 1)
-roughness = 0.92
-
-; ---------- Mesh + collision structurels ----------
 
 [sub_resource type="BoxMesh" id="mesh_floor"]
 size = Vector3(8.6, 0.1, 6.6)
@@ -62,11 +19,19 @@ size = Vector3(8.6, 0.1, 6.6)
 [sub_resource type="BoxShape3D" id="shape_floor"]
 size = Vector3(8.6, 0.1, 6.6)
 
+[sub_resource type="StandardMaterial3D" id="mat_plafond"]
+albedo_color = Color(0.8, 0.77, 0.72, 1)
+roughness = 0.92
+
 [sub_resource type="BoxMesh" id="mesh_ceil"]
 size = Vector3(8.6, 0.1, 6.6)
 
 [sub_resource type="BoxShape3D" id="shape_ceil"]
 size = Vector3(8.6, 0.1, 6.6)
+
+[sub_resource type="StandardMaterial3D" id="mat_mur"]
+albedo_color = Color(0.72, 0.65, 0.56, 1)
+roughness = 0.92
 
 [sub_resource type="BoxMesh" id="mesh_walln"]
 size = Vector3(8.6, 2.7, 0.15)
@@ -79,6 +44,10 @@ size = Vector3(8.6, 2.7, 0.15)
 
 [sub_resource type="BoxShape3D" id="shape_walls"]
 size = Vector3(8.6, 2.7, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="mat_mur2"]
+albedo_color = Color(0.76, 0.7, 0.62, 1)
+roughness = 0.92
 
 [sub_resource type="BoxMesh" id="mesh_walle_n"]
 size = Vector3(0.15, 2.7, 4.55)
@@ -122,6 +91,20 @@ size = Vector3(0.15, 0.9, 1.6)
 [sub_resource type="BoxShape3D" id="shape_wallw_b"]
 size = Vector3(0.15, 0.9, 1.6)
 
+[sub_resource type="StandardMaterial3D" id="mat_vitre"]
+albedo_color = Color(0.1, 0.15, 0.28, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(0.1, 0.15, 0.28, 1)
+emission_energy_multiplier = 0.5
+
+[sub_resource type="BoxMesh" id="mesh_pane"]
+size = Vector3(0.04, 1.2, 1.58)
+
+[sub_resource type="StandardMaterial3D" id="mat_noir"]
+albedo_color = Color(0.04, 0.04, 0.05, 1)
+roughness = 0.9
+
 [sub_resource type="BoxMesh" id="mesh_corrfloor"]
 size = Vector3(1.8, 0.1, 1.2)
 
@@ -134,264 +117,283 @@ size = Vector3(0.15, 2.7, 1.2)
 [sub_resource type="BoxShape3D" id="shape_corrend"]
 size = Vector3(0.15, 2.7, 1.2)
 
-[sub_resource type="BoxMesh" id="mesh_pane"]
-size = Vector3(0.04, 1.2, 1.58)
-
-; ---------- Décors statiques ----------
+[sub_resource type="StandardMaterial3D" id="mat_bois_fonce"]
+albedo_color = Color(0.24, 0.16, 0.11, 1)
+roughness = 0.88
 
 [sub_resource type="BoxMesh" id="mesh_plinthe_n"]
-size = Vector3(8.0, 0.08, 0.02)
+size = Vector3(8, 0.08, 0.02)
 
 [sub_resource type="BoxMesh" id="mesh_plinthe_s"]
-size = Vector3(8.0, 0.08, 0.02)
+size = Vector3(8, 0.08, 0.02)
 
 [sub_resource type="BoxMesh" id="mesh_plinthe_e"]
-size = Vector3(0.02, 0.08, 6.0)
+size = Vector3(0.02, 0.08, 6)
 
 [sub_resource type="BoxMesh" id="mesh_plinthe_w"]
-size = Vector3(0.02, 0.08, 6.0)
+size = Vector3(0.02, 0.08, 6)
+
+[sub_resource type="StandardMaterial3D" id="mat_cadre"]
+albedo_color = Color(0.85, 0.82, 0.76, 1)
+roughness = 0.85
 
 [sub_resource type="BoxMesh" id="mesh_fen_montant"]
 size = Vector3(0.06, 1.24, 0.06)
 
 [sub_resource type="BoxMesh" id="mesh_fen_traverse"]
-size = Vector3(0.06, 0.05, 1.60)
+size = Vector3(0.06, 0.05, 1.6)
 
 [sub_resource type="BoxMesh" id="mesh_fen_appui"]
-size = Vector3(0.10, 0.04, 1.72)
+size = Vector3(0.1, 0.04, 1.72)
 
 [sub_resource type="BoxMesh" id="mesh_porte_montant"]
-size = Vector3(0.06, 2.14, 0.10)
+size = Vector3(0.06, 2.14, 0.1)
 
 [sub_resource type="BoxMesh" id="mesh_porte_linteau"]
-size = Vector3(0.06, 0.10, 1.02)
+size = Vector3(0.06, 0.1, 1.02)
 
 [sub_resource type="BoxMesh" id="mesh_cadre_photo"]
 size = Vector3(0.44, 0.56, 0.03)
 
+[sub_resource type="StandardMaterial3D" id="mat_photo"]
+albedo_color = Color(0.3, 0.35, 0.42, 1)
+roughness = 0.92
+
 [sub_resource type="BoxMesh" id="mesh_photo_interieur"]
 size = Vector3(0.36, 0.48, 0.035)
 
-; ============================================================
-; NŒUDS
-; ============================================================
+[node name="Map2Living" type="Node3D" unique_id=1239910875]
 
-[node name="Map2Living" type="Node3D"]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=1252020866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
 
-; ---------- SOL ----------
-
-[node name="Floor" type="StaticBody3D" parent="."]
-position = Vector3(0, -0.05, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource("mesh_floor")
+[node name="Mesh" type="MeshInstance3D" parent="Floor" unique_id=1844293296]
 material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
 
-[node name="Collision" type="CollisionShape3D" parent="Floor"]
+[node name="Collision" type="CollisionShape3D" parent="Floor" unique_id=849667723]
 shape = SubResource("shape_floor")
 
-; ---------- PLAFOND ----------
+[node name="Ceiling" type="StaticBody3D" parent="." unique_id=884023542]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.75, 0)
+visible = false
 
-[node name="Ceiling" type="StaticBody3D" parent="."]
-position = Vector3(0, 2.75, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="Ceiling"]
-mesh = SubResource("mesh_ceil")
+[node name="Mesh" type="MeshInstance3D" parent="Ceiling" unique_id=2066886672]
 material_override = SubResource("mat_plafond")
+mesh = SubResource("mesh_ceil")
 
-[node name="Collision" type="CollisionShape3D" parent="Ceiling"]
+[node name="Collision" type="CollisionShape3D" parent="Ceiling" unique_id=540402664]
 shape = SubResource("shape_ceil")
 
-; ---------- MUR NORD ----------
+[node name="WallN" type="StaticBody3D" parent="." unique_id=1648261418]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, -3.075)
 
-[node name="WallN" type="StaticBody3D" parent="."]
-position = Vector3(0, 1.35, -3.075)
-
-[node name="Mesh" type="MeshInstance3D" parent="WallN"]
-mesh = SubResource("mesh_walln")
+[node name="Mesh" type="MeshInstance3D" parent="WallN" unique_id=206036503]
 material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
 
-[node name="Collision" type="CollisionShape3D" parent="WallN"]
+[node name="Collision" type="CollisionShape3D" parent="WallN" unique_id=1369359602]
 shape = SubResource("shape_walln")
 
-; ---------- MUR SUD ----------
+[node name="WallS" type="StaticBody3D" parent="." unique_id=2087697929]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.35, 3.075)
 
-[node name="WallS" type="StaticBody3D" parent="."]
-position = Vector3(0, 1.35, 3.075)
-
-[node name="Mesh" type="MeshInstance3D" parent="WallS"]
-mesh = SubResource("mesh_walls")
+[node name="Mesh" type="MeshInstance3D" parent="WallS" unique_id=1712049728]
 material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walls")
 
-[node name="Collision" type="CollisionShape3D" parent="WallS"]
+[node name="Collision" type="CollisionShape3D" parent="WallS" unique_id=2108660001]
 shape = SubResource("shape_walls")
 
-; ---------- MUR EST (porte z ∈ [1.55, 2.45]) ----------
+[node name="WallE_North" type="StaticBody3D" parent="." unique_id=1700697562]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.075, 1.35, -0.725)
 
-[node name="WallE_North" type="StaticBody3D" parent="."]
-position = Vector3(4.075, 1.35, -0.725)
-
-[node name="Mesh" type="MeshInstance3D" parent="WallE_North"]
-mesh = SubResource("mesh_walle_n")
+[node name="Mesh" type="MeshInstance3D" parent="WallE_North" unique_id=2139859594]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_walle_n")
 
-[node name="Collision" type="CollisionShape3D" parent="WallE_North"]
+[node name="Collision" type="CollisionShape3D" parent="WallE_North" unique_id=1201499896]
 shape = SubResource("shape_walle_n")
 
-[node name="WallE_South" type="StaticBody3D" parent="."]
-position = Vector3(4.075, 1.35, 2.725)
+[node name="WallE_South" type="StaticBody3D" parent="." unique_id=450478125]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.075, 1.35, 2.725)
 
-[node name="Mesh" type="MeshInstance3D" parent="WallE_South"]
-mesh = SubResource("mesh_walle_s")
+[node name="Mesh" type="MeshInstance3D" parent="WallE_South" unique_id=1517560167]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_walle_s")
 
-[node name="Collision" type="CollisionShape3D" parent="WallE_South"]
+[node name="Collision" type="CollisionShape3D" parent="WallE_South" unique_id=1263575309]
 shape = SubResource("shape_walle_s")
 
-[node name="WallE_Lintel" type="StaticBody3D" parent="."]
-position = Vector3(4.075, 2.4, 2.0)
+[node name="WallE_Lintel" type="StaticBody3D" parent="." unique_id=1084472711]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.075, 2.4, 2)
 
-[node name="Mesh" type="MeshInstance3D" parent="WallE_Lintel"]
-mesh = SubResource("mesh_walle_l")
+[node name="Mesh" type="MeshInstance3D" parent="WallE_Lintel" unique_id=1537602147]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_walle_l")
 
-[node name="Collision" type="CollisionShape3D" parent="WallE_Lintel"]
+[node name="Collision" type="CollisionShape3D" parent="WallE_Lintel" unique_id=918125691]
 shape = SubResource("shape_walle_l")
 
-; ---------- MUR OUEST (fenêtre z ∈ [-0.8, 0.8], y ∈ [0.9, 2.1]) ----------
+[node name="WallW_Top" type="StaticBody3D" parent="." unique_id=63476538]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.075, 2.4, 0)
 
-[node name="WallW_Top" type="StaticBody3D" parent="."]
-position = Vector3(-4.075, 2.4, 0)
-
-[node name="Mesh" type="MeshInstance3D" parent="WallW_Top"]
-mesh = SubResource("mesh_wallw_t")
+[node name="Mesh" type="MeshInstance3D" parent="WallW_Top" unique_id=1662235278]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_wallw_t")
 
-[node name="Collision" type="CollisionShape3D" parent="WallW_Top"]
+[node name="Collision" type="CollisionShape3D" parent="WallW_Top" unique_id=1872918296]
 shape = SubResource("shape_wallw_t")
 
-[node name="WallW_North" type="StaticBody3D" parent="."]
-position = Vector3(-4.075, 1.05, -1.9)
+[node name="WallW_North" type="StaticBody3D" parent="." unique_id=1247962891]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.075, 1.05, -1.9)
 
-[node name="Mesh" type="MeshInstance3D" parent="WallW_North"]
-mesh = SubResource("mesh_wallw_n")
+[node name="Mesh" type="MeshInstance3D" parent="WallW_North" unique_id=616799465]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_wallw_n")
 
-[node name="Collision" type="CollisionShape3D" parent="WallW_North"]
+[node name="Collision" type="CollisionShape3D" parent="WallW_North" unique_id=2010983471]
 shape = SubResource("shape_wallw_n")
 
-[node name="WallW_South" type="StaticBody3D" parent="."]
-position = Vector3(-4.075, 1.05, 1.9)
+[node name="WallW_South" type="StaticBody3D" parent="." unique_id=644967014]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.075, 1.05, 1.9)
 
-[node name="Mesh" type="MeshInstance3D" parent="WallW_South"]
-mesh = SubResource("mesh_wallw_s")
+[node name="Mesh" type="MeshInstance3D" parent="WallW_South" unique_id=546859132]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_wallw_s")
 
-[node name="Collision" type="CollisionShape3D" parent="WallW_South"]
+[node name="Collision" type="CollisionShape3D" parent="WallW_South" unique_id=1248226639]
 shape = SubResource("shape_wallw_s")
 
-[node name="WallW_Bottom" type="StaticBody3D" parent="."]
-position = Vector3(-4.075, 0.45, 0)
+[node name="WallW_Bottom" type="StaticBody3D" parent="." unique_id=389926357]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.075, 0.45, 0)
 
-[node name="Mesh" type="MeshInstance3D" parent="WallW_Bottom"]
-mesh = SubResource("mesh_wallw_b")
+[node name="Mesh" type="MeshInstance3D" parent="WallW_Bottom" unique_id=1210278405]
 material_override = SubResource("mat_mur2")
+mesh = SubResource("mesh_wallw_b")
 
-[node name="Collision" type="CollisionShape3D" parent="WallW_Bottom"]
+[node name="Collision" type="CollisionShape3D" parent="WallW_Bottom" unique_id=1181304309]
 shape = SubResource("shape_wallw_b")
 
-[node name="WindowPane" type="MeshInstance3D" parent="."]
-position = Vector3(-4.0, 1.5, 0)
-mesh = SubResource("mesh_pane")
+[node name="WindowPane" type="MeshInstance3D" parent="." unique_id=661761300]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.5, 0)
 material_override = SubResource("mat_vitre")
+mesh = SubResource("mesh_pane")
 
-; ---------- COULOIR NOIR ----------
+[node name="CorrFloor" type="StaticBody3D" parent="." unique_id=731245613]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.975, -0.05, 2)
 
-[node name="CorrFloor" type="StaticBody3D" parent="."]
-position = Vector3(4.975, -0.05, 2.0)
-
-[node name="Mesh" type="MeshInstance3D" parent="CorrFloor"]
-mesh = SubResource("mesh_corrfloor")
+[node name="Mesh" type="MeshInstance3D" parent="CorrFloor" unique_id=222859691]
 material_override = SubResource("mat_noir")
+mesh = SubResource("mesh_corrfloor")
 
-[node name="Collision" type="CollisionShape3D" parent="CorrFloor"]
+[node name="Collision" type="CollisionShape3D" parent="CorrFloor" unique_id=92678550]
 shape = SubResource("shape_corrfloor")
 
-[node name="CorrEnd" type="StaticBody3D" parent="."]
-position = Vector3(5.875, 1.35, 2.0)
+[node name="CorrEnd" type="StaticBody3D" parent="." unique_id=392164699]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.875, 1.35, 2)
 
-[node name="Mesh" type="MeshInstance3D" parent="CorrEnd"]
-mesh = SubResource("mesh_corrend")
+[node name="Mesh" type="MeshInstance3D" parent="CorrEnd" unique_id=1904762204]
 material_override = SubResource("mat_noir")
+mesh = SubResource("mesh_corrend")
 
-[node name="Collision" type="CollisionShape3D" parent="CorrEnd"]
+[node name="Collision" type="CollisionShape3D" parent="CorrEnd" unique_id=1729058898]
 shape = SubResource("shape_corrend")
 
-; ============================================================
-; DÉCORS STATIQUES
-; ============================================================
-
-[node name="PlintheN" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.04, -2.99)
+[node name="PlintheN" type="MeshInstance3D" parent="." unique_id=1845695023]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, -2.99)
+material_override = SubResource("mat_bois_fonce")
 mesh = SubResource("mesh_plinthe_n")
-material_override = SubResource("mat_bois_fonce")
 
-[node name="PlintheS" type="MeshInstance3D" parent="."]
-position = Vector3(0, 0.04, 2.99)
+[node name="PlintheS" type="MeshInstance3D" parent="." unique_id=216640008]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, 2.99)
+material_override = SubResource("mat_bois_fonce")
 mesh = SubResource("mesh_plinthe_s")
-material_override = SubResource("mat_bois_fonce")
 
-[node name="PlintheE" type="MeshInstance3D" parent="."]
-position = Vector3(3.99, 0.04, 0)
+[node name="PlintheE" type="MeshInstance3D" parent="." unique_id=1944578580]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.99, 0.04, 0)
+material_override = SubResource("mat_bois_fonce")
 mesh = SubResource("mesh_plinthe_e")
-material_override = SubResource("mat_bois_fonce")
 
-[node name="PlintheW" type="MeshInstance3D" parent="."]
-position = Vector3(-3.99, 0.04, 0)
+[node name="PlintheW" type="MeshInstance3D" parent="." unique_id=1226547891]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.99, 0.04, 0)
+material_override = SubResource("mat_bois_fonce")
 mesh = SubResource("mesh_plinthe_w")
-material_override = SubResource("mat_bois_fonce")
 
-[node name="FenMontantN" type="MeshInstance3D" parent="."]
-position = Vector3(-3.96, 1.5, -0.83)
-mesh = SubResource("mesh_fen_montant")
+[node name="FenMontantN" type="MeshInstance3D" parent="." unique_id=528410656]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.96, 1.5, -0.83)
 material_override = SubResource("mat_cadre")
-
-[node name="FenMontantS" type="MeshInstance3D" parent="."]
-position = Vector3(-3.96, 1.5, 0.83)
 mesh = SubResource("mesh_fen_montant")
-material_override = SubResource("mat_cadre")
 
-[node name="FenTraverse" type="MeshInstance3D" parent="."]
-position = Vector3(-3.96, 1.5, 0)
+[node name="FenMontantS" type="MeshInstance3D" parent="." unique_id=573101924]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.96, 1.5, 0.83)
+material_override = SubResource("mat_cadre")
+mesh = SubResource("mesh_fen_montant")
+
+[node name="FenTraverse" type="MeshInstance3D" parent="." unique_id=160775607]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.96, 1.5, 0)
+material_override = SubResource("mat_cadre")
 mesh = SubResource("mesh_fen_traverse")
-material_override = SubResource("mat_cadre")
 
-[node name="FenAppui" type="MeshInstance3D" parent="."]
-position = Vector3(-3.95, 0.92, 0)
+[node name="FenAppui" type="MeshInstance3D" parent="." unique_id=1824824472]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.95, 0.92, 0)
+material_override = SubResource("mat_cadre")
 mesh = SubResource("mesh_fen_appui")
-material_override = SubResource("mat_cadre")
 
-[node name="PorteMontantN" type="MeshInstance3D" parent="."]
-position = Vector3(3.96, 1.07, 1.50)
+[node name="PorteMontantN" type="MeshInstance3D" parent="." unique_id=1373821324]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.96, 1.07, 1.5)
+material_override = SubResource("mat_cadre")
 mesh = SubResource("mesh_porte_montant")
-material_override = SubResource("mat_cadre")
 
-[node name="PorteMontantS" type="MeshInstance3D" parent="."]
-position = Vector3(3.96, 1.07, 2.50)
+[node name="PorteMontantS" type="MeshInstance3D" parent="." unique_id=767886190]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.96, 1.07, 2.5)
+material_override = SubResource("mat_cadre")
 mesh = SubResource("mesh_porte_montant")
-material_override = SubResource("mat_cadre")
 
-[node name="PorteLinteau" type="MeshInstance3D" parent="."]
-position = Vector3(3.96, 2.16, 2.0)
+[node name="PorteLinteau" type="MeshInstance3D" parent="." unique_id=704545536]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.96, 2.16, 2)
+material_override = SubResource("mat_cadre")
 mesh = SubResource("mesh_porte_linteau")
-material_override = SubResource("mat_cadre")
 
-[node name="CadrePhoto" type="MeshInstance3D" parent="."]
-position = Vector3(-1.5, 1.6, 2.97)
+[node name="CadrePhoto" type="MeshInstance3D" parent="." unique_id=2040929360]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.6, 2.97)
+material_override = SubResource("mat_cadre")
 mesh = SubResource("mesh_cadre_photo")
-material_override = SubResource("mat_cadre")
 
-[node name="PhotoInterieur" type="MeshInstance3D" parent="."]
-position = Vector3(-1.5, 1.6, 2.955)
-mesh = SubResource("mesh_photo_interieur")
+[node name="PhotoInterieur" type="MeshInstance3D" parent="." unique_id=450628694]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 1.6, 2.955)
 material_override = SubResource("mat_photo")
+mesh = SubResource("mesh_photo_interieur")
+
+[node name="chair2" parent="." unique_id=873817604 instance=ExtResource("1_dac35")]
+transform = Transform3D(0.17166814, 0.11313979, -2.4915316, 0, 2.4974265, 0.11340748, 2.494099, -0.0077873804, 0.17149143, 0.59419596, 0, 0.15775174)
+
+[node name="chair" parent="." unique_id=1590827648 instance=ExtResource("1_dac35")]
+transform = Transform3D(-0.20985506, 0, -2.4911766, 0, 2.5, 0, 2.4911766, 0, -0.20985506, 0.6326052, 0, 0.965)
+
+[node name="table" parent="." unique_id=52857046 instance=ExtResource("2_hugno")]
+transform = Transform3D(-1.0927848e-07, 0, 2.5000002, 0, 2.5000002, 0, -2.5000002, 0, -1.0927848e-07, 0.683, 0, 1.858)
+
+[node name="kitchenFridge" parent="." unique_id=991216226 instance=ExtResource("3_d3lit")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, -3.890181, -4.8428774e-08, -2.2541356)
+
+[node name="sideTableDrawers" parent="." unique_id=1676333205 instance=ExtResource("4_ph6bl")]
+transform = Transform3D(-2.5000002, 0, -2.1855696e-07, 0, 2.5, 0, 2.1855696e-07, 0, -2.5000002, -2.0530791, 0.030021787, 2.321509)
+
+[node name="televisionModern" parent="." unique_id=23092938 instance=ExtResource("5_b8no4")]
+transform = Transform3D(-2.486418, 0, 0.2602405, 0, 2.5, 0, -0.2602405, 0, -2.486418, -2.727117, 0.99734426, 2.5586972)
+
+[node name="chair3" parent="." unique_id=1904473355 instance=ExtResource("1_dac35")]
+transform = Transform3D(-1.3416737, 0, 2.1094813, 0, 2.5, 0, -2.1094813, 0, -1.3416737, -0.39831924, 0, 1.411)
+
+[node name="chair4" parent="." unique_id=967978571 instance=ExtResource("1_dac35")]
+transform = Transform3D(0.43805915, 0, 2.4613216, 0, 2.5, 0, -2.4613216, 0, 0.43805915, -0.17405748, 0, 0.8847559)
+
+[node name="rugRounded" parent="." unique_id=1424068260 instance=ExtResource("6_c1k2s")]
+transform = Transform3D(-1.09278474e-07, 0, 2.5, 0, 2.5, 0, -2.5, 0, -1.09278474e-07, 3.5914783, -0.023298034, 2.069806)
+
+[node name="rugRound" parent="." unique_id=1684246499 instance=ExtResource("7_i5ljf")]
+transform = Transform3D(1.75, 0, 0, 0, 1.75, 0, 0, 0, 1.75, -3.647729, -0.01, 2.3156984)
+
+[node name="loungeSofa" parent="." unique_id=218454479 instance=ExtResource("8_d3lit")]
+transform = Transform3D(2.5, 0, 0, 0, 2.5, 0, 0, 0, 2.5, -3.8955588, 0, 0.273)
