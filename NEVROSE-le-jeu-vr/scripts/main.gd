@@ -21,9 +21,10 @@ const SANITY_RATE_AFTER_DOSE := 0.7 # la montée ralentit après une dose
 const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 
 # Limites de la pièce pour le clamp de déplacement (mur = mur, zéro collision coûteuse)
-# Map 2 (salon+cuisine) : 8 x 6 m → x ∈ [-3.7, 3.7], z ∈ [-2.7, 2.7]
+# Map 2 étendue : salon+cuisine+couloir+garage+chambre+sdb+dressing
+# x ∈ [-3.7, 10.0], z ∈ [-2.7, 5.7]
 const ROOM_MIN := Vector2(-3.7, -2.7)
-const ROOM_MAX := Vector2(3.7, 2.7)
+const ROOM_MAX := Vector2(10.0, 5.7)
 
 # Seuils de folie (GDD §5.2) : la folie se lit sur le monde, pas sur une barre.
 const FOLIE_LEGERE := 35.0 # vignette douce
@@ -179,8 +180,8 @@ func _build_world() -> void:
 	world_env.environment = env
 	add_child(world_env)
 
-	apartment = preload("res://scripts/map2_living.gd").new()
-	apartment.name = "Map2Living"
+	apartment = preload("res://scripts/map2_extended.gd").new()
+	apartment.name = "Map2Extended"
 	add_child(apartment)
 	apartment.build()
 	_log("WORLD", "map salon+cuisine construite : %d nœuds" % apartment.get_child_count())
