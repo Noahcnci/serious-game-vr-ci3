@@ -26,6 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://ciw5cxobvbm3w" path="res://assets/KloWorks_Healthy&Junk_Food_Pack/KloWorks_Healthy&Junk_Food_Kit/Gltf/Healthy_Food/Salmon.glb" id="26_yydf7"]
 [ext_resource type="PackedScene" uid="uid://et7se7hknemq" path="res://assets/KloWorks_Healthy&Junk_Food_Pack/KloWorks_Healthy&Junk_Food_Kit/Gltf/Junk_Food/Pizza.glb" id="27_35e0n"]
 [ext_resource type="PackedScene" uid="uid://3711iglko6ps" path="res://assets/Gun&Knife/low_poly_knife.glb" id="30_r0jqq"]
+[ext_resource type="Script" uid="uid://cytslknhkiv7f" path="res://scripts/rats.gd" id="55_hxs6d"]
 [ext_resource type="PackedScene" uid="uid://dinh7mb6idk63" path="res://assets/kenney/furniture/bathtub.glb" id="mob_bathtub"]
 [ext_resource type="PackedScene" uid="uid://lku2n088k5yy" path="res://assets/kenney/furniture/bedDouble.glb" id="mob_bed"]
 [ext_resource type="PackedScene" uid="uid://errkropianqq" path="res://assets/kenney/furniture/bookcaseClosed.glb" id="mob_bookclosed"]
@@ -138,8 +139,9 @@ size = Vector3(0.15, 0.9, 1.6)
 size = Vector3(0.15, 0.9, 1.6)
 
 [sub_resource type="StandardMaterial3D" id="mat_vitre"]
-albedo_color = Color(0.1, 0.15, 0.28, 1)
-roughness = 0.5
+transparency = 1
+albedo_color = Color(0.75, 0.88, 0.95, 0.18)
+roughness = 0.15
 emission_enabled = true
 emission = Color(0.1, 0.15, 0.28, 1)
 emission_energy_multiplier = 0.5
@@ -191,6 +193,35 @@ roughness = 0.92
 
 [sub_resource type="BoxMesh" id="mesh_photo_interieur"]
 size = Vector3(0.36, 0.48, 0.035)
+
+[sub_resource type="StandardMaterial3D" id="mat_herbe"]
+albedo_color = Color(0.33, 0.5, 0.22, 1)
+
+[sub_resource type="CylinderMesh" id="mesh_tronc"]
+top_radius = 0.08
+bottom_radius = 0.13
+height = 1.7
+
+[sub_resource type="StandardMaterial3D" id="mat_feuille"]
+albedo_color = Color(0.2, 0.4, 0.16, 1)
+
+[sub_resource type="SphereMesh" id="mesh_feuille"]
+radius = 0.75
+
+[sub_resource type="StandardMaterial3D" id="mat_fleur_r"]
+albedo_color = Color(0.85, 0.15, 0.15, 1)
+roughness = 0.8
+
+[sub_resource type="SphereMesh" id="mesh_fleur"]
+radius = 0.06
+
+[sub_resource type="StandardMaterial3D" id="mat_fleur_j"]
+albedo_color = Color(0.95, 0.8, 0.15, 1)
+roughness = 0.8
+
+[sub_resource type="StandardMaterial3D" id="mat_fleur_b"]
+albedo_color = Color(0.95, 0.95, 0.95, 1)
+roughness = 0.8
 
 [node name="Map2Extended" type="Node3D" unique_id=1239910875]
 
@@ -596,19 +627,13 @@ material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
 [node name="Paillasson" parent="ExtensionEst/Couloir" unique_id=74620086 instance=ExtResource("mob_rugdoormat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.85, 0.01, 2)
+transform = Transform3D(-0.004438549, 0, -0.99999017, 0, 1, 0, 0.99999017, 0, -0.004438549, 9.945635, 0.01, 1.8641969)
 
 [node name="PorteManteau" parent="ExtensionEst/Couloir" unique_id=896876277 instance=ExtResource("mob_coatrack")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.68, 0, 1.68)
-
-[node name="TableauCouloirN" parent="ExtensionEst/Couloir" unique_id=1215810207 instance=ExtResource("mob_tabroy")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 1.45, 1.44)
-
-[node name="TableauCouloirS" parent="ExtensionEst/Couloir" unique_id=57889472 instance=ExtResource("mob_tabmayo")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.7, 1.45, 2.56)
+transform = Transform3D(1.6117048, 0, 0, 0, 1.5407848, 0, 0, 0, 1.5195662, 4.68, 0, 0.9586333)
 
 [node name="PlanteCouloir" parent="ExtensionEst/Couloir" unique_id=288939372 instance=ExtResource("mob_plantsmall")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.72, 0, 1.62)
+transform = Transform3D(2.509744, 0, 0, 0, 3.6359992, 0, 0, 0, 2.4537697, 10.043025, 0, 1.5954295)
 
 [node name="Garage" type="Node3D" parent="ExtensionEst" unique_id=1622907729]
 
@@ -643,31 +668,31 @@ material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
 [node name="LaveLinge" parent="ExtensionEst/Garage" unique_id=1657318772 instance=ExtResource("mob_washer")]
-transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 4.78, 0, 3.15)
+transform = Transform3D(0, 0, 1.1639848, 0, 1.1529227, 0, -1.2981274, 0, 0, 4.804886, 0, 3.3134232)
 
 [node name="Etabli" parent="ExtensionEst/Garage" unique_id=1661155701 instance=ExtResource("mob_desk")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.8, 0, 6.2)
+transform = Transform3D(-1.3792906, 0, 0, 0, 1.5224214, 0, 0, 0, -1, 6.220633, -0.03358423, 6.1151357)
 
 [node name="Tabouret" parent="ExtensionEst/Garage" unique_id=974729686 instance=ExtResource("mob_stool")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.7, 0, 6.1)
+transform = Transform3D(1.3596551, 0, 0, 0, 1.5224214, 0, 0, 0, 1.5661857, 5.4660687, -0.23033482, 6.1)
 
 [node name="EtagereGarage" parent="ExtensionEst/Garage" unique_id=1594739695 instance=ExtResource("mob_bookopen")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.95, 0, 4.4)
+transform = Transform3D(0, 0, -1, 0, 1.5224214, 0, 1.5384107, 0, 0, 9.95, -0.03358423, 4.4)
 
 [node name="Radio" parent="ExtensionEst/Garage" unique_id=1469191872 instance=ExtResource("mob_radio")]
-transform = Transform3D(-0.98481, 0, 0.17365, 0, 1, 0, -0.17365, 0, -0.98481, 5.8, 0.78, 6.3)
+transform = Transform3D(-0.68451107, 0, 0.1829868, 0, 0.63383466, 0, -0.120698765, 0, -1.0377612, 5.509828, 0.5642553, 6.344798)
 
 [node name="Carton1" parent="ExtensionEst/Garage" unique_id=1142352109 instance=ExtResource("mob_boxclosed")]
-transform = Transform3D(0.96593, 0, 0.25882, 0, 1, 0, -0.25882, 0, 0.96593, 9.55, 0, 6.1)
+transform = Transform3D(0.96593, 0, 0.25882, 0, 1.5224214, 0, -0.25882, 0, 0.96593, 9.55, -0.03358423, 6.359726)
 
 [node name="Carton2" parent="ExtensionEst/Garage" unique_id=1946914343 instance=ExtResource("mob_boxopen")]
-transform = Transform3D(0.90631, 0, -0.42262, 0, 1, 0, 0.42262, 0, 0.90631, 9.95, 0, 5.65)
+transform = Transform3D(0.90631, 0, -0.42262, 0, 1.5224214, 0, 0.42262, 0, 0.90631, 9.8102865, 0.0248949, 5.8520494)
 
 [node name="Carton3" parent="ExtensionEst/Garage" unique_id=1924250518 instance=ExtResource("mob_boxclosed")]
-transform = Transform3D(0.76604, 0, 0.64279, 0, 1, 0, -0.64279, 0, 0.76604, 9.55, 0.45, 6.1)
+transform = Transform3D(0.76604, 0, 0.64279, 0, 1.5224214, 0, -0.64279, 0, 0.76604, 9.55, 0.01805669, 6.1)
 
 [node name="Poubelle" parent="ExtensionEst/Garage" unique_id=905418761 instance=ExtResource("mob_trash")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.62, 0, 5.85)
+transform = Transform3D(-1.1475911, 0, 0.31034654, 0, 1.5224214, 0, -0.37464985, 0, -0.9506235, 4.5816765, -0.03358423, 6.28585)
 
 [node name="Chambre" type="Node3D" parent="ExtensionEst" unique_id=1158461240]
 
@@ -702,34 +727,34 @@ material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
 [node name="LitDouble" parent="ExtensionEst/Chambre" unique_id=362085414 instance=ExtResource("mob_bed")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0, -1.6)
+transform = Transform3D(1.25, 0, 0, 0, 1.25, 0, 0, 0, 1.25, 6.059052, 0, -1.1086504)
 
 [node name="TableNuit" parent="ExtensionEst/Chambre" unique_id=673601983 instance=ExtResource("mob_nightstand")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0, -2.3)
+transform = Transform3D(1.3207711, 0, 0, 0, 1.4352071, 0, 0, 0, 1.3056097, 5.2002425, -0.057905555, -2.175233)
 
 [node name="LampeNuit" parent="ExtensionEst/Chambre" unique_id=1317635487 instance=ExtResource("mob_lamptable")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0.55, -2.3)
+transform = Transform3D(1.3207711, 0, 0, 0, 1.4352071, 0, 0, 0, 1.3056097, 5.3007226, 0.3240113, -2.224412)
 
 [node name="Bureau" parent="ExtensionEst/Chambre" unique_id=1076494282 instance=ExtResource("mob_desk")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0, 1.05)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0, 0.92750263)
 
 [node name="ChaiseBureau" parent="ExtensionEst/Chambre" unique_id=1502538878 instance=ExtResource("mob_chairdesk")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0, 0.5)
+transform = Transform3D(0.9572711, 0, 0.28919214, 0, 1, 0, -0.28919214, 0, 0.9572711, 7.097135, 0, 1.0062941)
 
 [node name="EtagereChambre" parent="ExtensionEst/Chambre" unique_id=897385938 instance=ExtResource("mob_bookclosed")]
-transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 8.02, 0, -0.3)
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 7.946248, 0, -0.3)
 
 [node name="TapisChambre" parent="ExtensionEst/Chambre" unique_id=1271591647 instance=ExtResource("mob_rugrect")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.9, 0.01, -0.2)
+transform = Transform3D(-0.9999887, 0, -0.005535363, 0, 1, 0, 0.0047646263, 0, -1.1617492, 7.396077, 0.01, -0.79830736)
 
 [node name="PlanteChambre" parent="ExtensionEst/Chambre" unique_id=1314829972 instance=ExtResource("mob_plant")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.62, 0, -1.75)
+transform = Transform3D(1.3117137, 0, 0, 0, 1.5645483, 0, 0, 0, 1, 4.62, 0, -2.3090317)
 
 [node name="Ordinateur" parent="ExtensionEst/Chambre" unique_id=1497767954 instance=ExtResource("mob_laptop")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0.75, 1)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.3319907, 0.3814109, 1)
 
 [node name="Ventilateur" parent="ExtensionEst/Chambre" unique_id=927888937 instance=ExtResource("mob_fan")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 2.7, -0.6)
+transform = Transform3D(1.9384203, 0, 0, 0, 1, 0, 0, 0, 2.0403376, 6.3, 2.7, -0.6)
 
 [node name="SDB" type="Node3D" parent="ExtensionEst" unique_id=2062315239]
 
@@ -754,19 +779,19 @@ material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
 [node name="Baignoire" parent="ExtensionEst/SDB" unique_id=776093777 instance=ExtResource("mob_bathtub")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.2, 0, -0.25)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 0.034747116)
 
 [node name="WC" parent="ExtensionEst/SDB" unique_id=660467442 instance=ExtResource("mob_toilet")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 8.68, 0, 1.08)
+transform = Transform3D(-0.004653004, 0, 0.99998915, 0, 1, 0, -0.99998915, 0, -0.004653004, 8.4013605, 0, 0.4044876)
 
 [node name="Lavabo" parent="ExtensionEst/SDB" unique_id=1030075106 instance=ExtResource("mob_sink")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.78, 0, 1.08)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 8.966722, 0, 0.86846197)
 
 [node name="Miroir" parent="ExtensionEst/SDB" unique_id=1730042219 instance=ExtResource("mob_mirror")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.78, 1.55, 1.38)
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 8.895085, 0.72197926, 1.2648516)
 
 [node name="TapisSDB" parent="ExtensionEst/SDB" unique_id=675742120 instance=ExtResource("mob_rugdoormat")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 0.01, 0.35)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.378673, 0.01, 0.36535636)
 
 [node name="Dressing" type="Node3D" parent="ExtensionEst" unique_id=433758910]
 
@@ -806,16 +831,131 @@ material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
 [node name="Armoire1" parent="ExtensionEst/Dressing" unique_id=694603609 instance=ExtResource("mob_bookdoors")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.68, 0, -2.42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.68, 0, -2.264739)
 
 [node name="Armoire2" parent="ExtensionEst/Dressing" unique_id=1899596439 instance=ExtResource("mob_bookclosed")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.55, 0, -2.42)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.55, 0, -2.264739)
 
 [node name="PorteManteauDressing" parent="ExtensionEst/Dressing" unique_id=1327854293 instance=ExtResource("mob_coatrack")]
 transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10, 0, -0.85)
 
 [node name="CartonDressing" parent="ExtensionEst/Dressing" unique_id=529180675 instance=ExtResource("mob_boxopen")]
-transform = Transform3D(0.98481, 0, 0.17365, 0, 1, 0, -0.17365, 0, 0.98481, 8.68, 0, -0.85)
+transform = Transform3D(0.98481, 0, 0.17365, 0, 1, 0, -0.17365, 0, 0.98481, 8.68, 0.011794448, -0.85)
 
 [node name="Coussin" parent="ExtensionEst/Dressing" unique_id=824677161 instance=ExtResource("mob_pillow")]
-transform = Transform3D(0.90631, 0, 0.42262, 0, 1, 0, -0.42262, 0, 0.90631, 8.68, 0.35, -0.85)
+transform = Transform3D(0.90631, 0, 0.42262, 0, 1, 0, -0.42262, 0, 0.90631, 8.68, -0.03163013, -0.85)
+
+[node name="Jardin" type="Node3D" parent="." unique_id=289758290]
+
+[node name="SolHerbe" type="MeshInstance3D" parent="Jardin" unique_id=1360815716]
+transform = Transform3D(0.616279, 0, 0, 0, 1, 0, 0, 0, 1.19697, -6.8, -0.11, 0)
+material_override = SubResource("mat_herbe")
+mesh = SubResource("mesh_floor")
+
+[node name="Terrasse" type="MeshInstance3D" parent="Jardin" unique_id=1137884628]
+transform = Transform3D(0.168605, 0, 0, 0, 0.8, 0, 0, 0, 0.363636, -4.875, -0.06, 0)
+material_override = SubResource("mat_bois_fonce")
+mesh = SubResource("mesh_floor")
+
+[node name="ClotureO" type="MeshInstance3D" parent="Jardin" unique_id=825682553]
+transform = Transform3D(0, 0, 0.936047, 0, 0.37037, 0, -1, 0, 0, -9.375, 0.44, 0)
+material_override = SubResource("mat_bois_fonce")
+mesh = SubResource("mesh_walln")
+
+[node name="ClotureN" type="MeshInstance3D" parent="Jardin" unique_id=1819105273]
+transform = Transform3D(0.616279, 0, 0, 0, 0.37037, 0, 0, 0, 1, -6.8, 0.44, -3.875)
+material_override = SubResource("mat_bois_fonce")
+mesh = SubResource("mesh_walln")
+
+[node name="ClotureS" type="MeshInstance3D" parent="Jardin" unique_id=1873965113]
+transform = Transform3D(0.616279, 0, 0, 0, 0.37037, 0, 0, 0, 1, -6.8, 0.44, 3.875)
+material_override = SubResource("mat_bois_fonce")
+mesh = SubResource("mesh_walln")
+
+[node name="Arbre1Tronc" type="MeshInstance3D" parent="Jardin" unique_id=817659793]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.3, 0.79, -2.6)
+material_override = SubResource("mat_bois_fonce")
+mesh = SubResource("mesh_tronc")
+
+[node name="Arbre1Cime" type="MeshInstance3D" parent="Jardin" unique_id=1250944794]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.3, 2.03, -2.6)
+material_override = SubResource("mat_feuille")
+mesh = SubResource("mesh_feuille")
+
+[node name="Arbre2Tronc" type="MeshInstance3D" parent="Jardin" unique_id=1136178533]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0.79, 2.5)
+material_override = SubResource("mat_bois_fonce")
+mesh = SubResource("mesh_tronc")
+
+[node name="Arbre2Cime" type="MeshInstance3D" parent="Jardin" unique_id=1233167359]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 2.03, 2.5)
+material_override = SubResource("mat_feuille")
+mesh = SubResource("mesh_feuille")
+
+[node name="Buisson1" type="MeshInstance3D" parent="Jardin" unique_id=1501552358]
+transform = Transform3D(0.081395, 0, 0, 0, 7, 0, 0, 0, 0.106061, -9, 0.29, -1.2)
+material_override = SubResource("mat_feuille")
+mesh = SubResource("mesh_floor")
+
+[node name="Buisson2" type="MeshInstance3D" parent="Jardin" unique_id=977017650]
+transform = Transform3D(0.081395, 0, 0, 0, 7, 0, 0, 0, 0.106061, -9, 0.29, 1.5)
+material_override = SubResource("mat_feuille")
+mesh = SubResource("mesh_floor")
+
+[node name="Buisson3" type="MeshInstance3D" parent="Jardin" unique_id=1793432577]
+transform = Transform3D(0.081395, 0, 0, 0, 7, 0, 0, 0, 0.106061, -5.7, 0.29, -3.3)
+material_override = SubResource("mat_feuille")
+mesh = SubResource("mesh_floor")
+
+[node name="Buisson4" type="MeshInstance3D" parent="Jardin" unique_id=1507181116]
+transform = Transform3D(0.081395, 0, 0, 0, 7, 0, 0, 0, 0.106061, -7.2, 0.29, 3.4)
+material_override = SubResource("mat_feuille")
+mesh = SubResource("mesh_floor")
+
+[node name="PlatebandeN" type="MeshInstance3D" parent="Jardin" unique_id=586995753]
+transform = Transform3D(0.151163, 0, 0, 0, 0.6, 0, 0, 0, 0.106061, -4.9, -0.04, -1.7)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="PlatebandeS" type="MeshInstance3D" parent="Jardin" unique_id=1252422429]
+transform = Transform3D(0.151163, 0, 0, 0, 0.6, 0, 0, 0, 0.106061, -4.9, -0.04, 1.7)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="FleurN1" type="MeshInstance3D" parent="Jardin" unique_id=2066808274]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 0.02, -1.7)
+material_override = SubResource("mat_fleur_r")
+mesh = SubResource("mesh_fleur")
+
+[node name="FleurN2" type="MeshInstance3D" parent="Jardin" unique_id=742344823]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 0.02, -1.6)
+material_override = SubResource("mat_fleur_j")
+mesh = SubResource("mesh_fleur")
+
+[node name="FleurN3" type="MeshInstance3D" parent="Jardin" unique_id=97003945]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.55, 0.02, -1.75)
+material_override = SubResource("mat_fleur_b")
+mesh = SubResource("mesh_fleur")
+
+[node name="FleurS1" type="MeshInstance3D" parent="Jardin" unique_id=2098815049]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.25, 0.02, 1.7)
+material_override = SubResource("mat_fleur_j")
+mesh = SubResource("mesh_fleur")
+
+[node name="FleurS2" type="MeshInstance3D" parent="Jardin" unique_id=320174563]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.9, 0.02, 1.6)
+material_override = SubResource("mat_fleur_b")
+mesh = SubResource("mesh_fleur")
+
+[node name="FleurS3" type="MeshInstance3D" parent="Jardin" unique_id=1377796963]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.55, 0.02, 1.75)
+material_override = SubResource("mat_fleur_r")
+mesh = SubResource("mesh_fleur")
+
+[node name="Rats" type="Node3D" parent="Jardin" unique_id=143466382]
+script = ExtResource("55_hxs6d")
+
+[node name="SoleilJardin" type="DirectionalLight3D" parent="Jardin" unique_id=1376461480]
+transform = Transform3D(0.81915206, 0.46984634, -0.32898995, 0, 0.57357645, 0.81915206, 0.57357645, -0.6710101, 0.46984634, 0, 0, 0)
+light_energy = 1.2
+shadow_enabled = true
