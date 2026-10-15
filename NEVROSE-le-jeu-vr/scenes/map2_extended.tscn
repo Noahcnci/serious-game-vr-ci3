@@ -123,25 +123,6 @@ emission_energy_multiplier = 0.5
 [sub_resource type="BoxMesh" id="mesh_pane"]
 size = Vector3(0.04, 1.2, 1.58)
 
-[sub_resource type="StandardMaterial3D" id="mat_noir"]
-albedo_color = Color(0.04, 0.04, 0.05, 1)
-roughness = 0.9
-
-[sub_resource type="BoxMesh" id="mesh_corrfloor"]
-size = Vector3(2.9598877, 0.1, 3.1686523)
-
-[sub_resource type="BoxShape3D" id="shape_corrfloor"]
-size = Vector3(1.8, 0.1, 1.2)
-
-[sub_resource type="BoxMesh" id="mesh_floor_12x6"]
-size = Vector3(1.2, 0.1, 6)
-
-[sub_resource type="BoxShape3D" id="shape_floor_12x6"]
-size = Vector3(1.2, 0.1, 6)
-
-[sub_resource type="BoxMesh" id="mesh_corrend"]
-size = Vector3(0.15, 3.9325194, 0.8817383)
-
 [sub_resource type="StandardMaterial3D" id="mat_bois_fonce"]
 albedo_color = Color(0.24, 0.16, 0.11, 1)
 roughness = 0.88
@@ -370,40 +351,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 1.5, 0)
 material_override = SubResource("mat_vitre")
 mesh = SubResource("mesh_pane")
 
-[node name="CorrFloor" type="StaticBody3D" parent="." unique_id=731245613]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.975, -0.05, 2)
-
-[node name="Mesh" type="MeshInstance3D" parent="CorrFloor" unique_id=222859691]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.57994413, 0, -0.4479004)
-material_override = SubResource("mat_noir")
-mesh = SubResource("mesh_corrfloor")
-
-[node name="Collision" type="CollisionShape3D" parent="CorrFloor" unique_id=92678550]
-shape = SubResource("shape_corrfloor")
-
-[node name="Mesh2" type="MeshInstance3D" parent="CorrFloor" unique_id=130944747]
-material_override = SubResource("mat_sol")
-mesh = SubResource("mesh_floor_12x6")
-
-[node name="Collision2" type="CollisionShape3D" parent="CorrFloor" unique_id=1689799073]
-shape = SubResource("shape_floor_12x6")
-
-[node name="CorrEnd2" type="StaticBody3D" parent="." unique_id=268854435]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11.75, 2.7, 4)
-
-[node name="Mesh" type="MeshInstance3D" parent="CorrEnd2" unique_id=1067348760]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7.2354317, -1.0081083, -0.89785886)
-material_override = SubResource("mat_noir")
-mesh = SubResource("mesh_corrend")
-
-[node name="CorrEnd" type="StaticBody3D" parent="." unique_id=392164699]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.875, 1.35, 2)
-
-[node name="Mesh" type="MeshInstance3D" parent="CorrEnd" unique_id=1904762204]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0.67231035, 0.3075112, 1.1193323)
-material_override = SubResource("mat_noir")
-mesh = SubResource("mesh_corrend")
-
 [node name="PlintheN" type="MeshInstance3D" parent="." unique_id=1845695023]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.04, -2.99)
 material_override = SubResource("mat_bois_fonce")
@@ -557,3 +504,195 @@ transform = Transform3D(-0.042214237, -0.023226522, -0.08762694, 0.016439691, 0.
 
 [node name="Sketchfab_Scene" parent="Sketchfab_Scene" unique_id=1459504896 instance=ExtResource("30_r0jqq")]
 transform = Transform3D(0.65335906, 0.7503995, 0.10010639, -0.62969816, 0.4652778, 0.62209034, 0.4202394, -0.469485, 0.77651906, -41.548817, 5.054123, -30.614487)
+
+[node name="ExtensionEst" type="Node3D" parent="." unique_id=1130852935]
+
+[node name="Couloir" type="Node3D" parent="ExtensionEst" unique_id=218517286]
+
+[node name="MurCouloirN1" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=338707893]
+transform = Transform3D(0.104651, 0, 0, 0, 1, 0, 0, 0, 1, 4.75, 1.35, 1.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurCouloirN2" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=1689552200]
+transform = Transform3D(0.337209, 0, 0, 0, 1, 0, 0, 0, 1, 7.55, 1.35, 1.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurCouloirN3" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=1603058750]
+transform = Transform3D(0.046512, 0, 0, 0, 1, 0, 0, 0, 1, 10.1, 1.35, 1.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="LinteauD2" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=1073121937]
+transform = Transform3D(0.104651, 0, 0, 0, 0.222222, 0, 0, 0, 1, 5.65, 2.4, 1.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="LinteauD3" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=2054301130]
+transform = Transform3D(0.104651, 0, 0, 0, 0.222222, 0, 0, 0, 1, 9.45, 2.4, 1.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurCouloirS1" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=542752001]
+transform = Transform3D(0.151163, 0, 0, 0, 1, 0, 0, 0, 1, 4.95, 1.35, 2.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurCouloirS2" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=962459433]
+transform = Transform3D(0.44186, 0, 0, 0, 1, 0, 0, 0, 1, 8.4, 1.35, 2.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="LinteauD4" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=368131565]
+transform = Transform3D(0.104651, 0, 0, 0, 0.222222, 0, 0, 0, 1, 6.05, 2.4, 2.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurCouloirE1" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=797812203]
+transform = Transform3D(-7.62414e-10, 0, 1, 0, 1, 0, -0.017442, 0, -4.371139e-08, 10.3, 1.35, 1.475)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurCouloirE2" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=29905670]
+transform = Transform3D(-7.62414e-10, 0, 1, 0, 1, 0, -0.017442, 0, -4.371139e-08, 10.3, 1.35, 2.525)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="LinteauD6" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=1299327981]
+transform = Transform3D(-4.5744404e-09, 0, 1, 0, 0.222222, 0, -0.104651, 0, -4.371139e-08, 10.3, 2.4, 2)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="SolCouloir" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=1500581072]
+transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 0.181818, 7.3, -0.05, 2)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="PlafondCouloir" type="MeshInstance3D" parent="ExtensionEst/Couloir" unique_id=178937820]
+transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 0.181818, 7.3, 2.75, 2)
+material_override = SubResource("mat_plafond")
+mesh = SubResource("mesh_ceil")
+
+[node name="Garage" type="Node3D" parent="ExtensionEst" unique_id=1622907729]
+
+[node name="MurGarageS" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=336737895]
+transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 1, 7.3, 1.35, 6.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurGarageE" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=1660983714]
+transform = Transform3D(-2.0330866e-08, 0, 1, 0, 1, 0, -0.465116, 0, -4.371139e-08, 10.3, 1.35, 4.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurGarageO" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=1271274252]
+transform = Transform3D(-2.0330866e-08, 0, 1, 0, 1, 0, -0.465116, 0, -4.371139e-08, 4.3, 1.35, 4.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurJonctionS" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=1791778262]
+transform = Transform3D(-2.0331041e-09, 0, 1, 0, 1, 0, -0.046512, 0, -4.371139e-08, 4.3, 1.35, 2.8)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="SolGarage" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=2098171157]
+transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 0.606061, 7.3, -0.05, 4.6)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="PlafondGarage" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=263541869]
+transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 0.606061, 7.3, 2.75, 4.6)
+material_override = SubResource("mat_plafond")
+mesh = SubResource("mesh_ceil")
+
+[node name="Chambre" type="Node3D" parent="ExtensionEst" unique_id=1158461240]
+
+[node name="MurChambreN" type="MeshInstance3D" parent="ExtensionEst/Chambre" unique_id=1050490043]
+transform = Transform3D(0.465116, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 1.35, -2.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurChambreO" type="MeshInstance3D" parent="ExtensionEst/Chambre" unique_id=1142285053]
+transform = Transform3D(-2.0330866e-08, 0, 1, 0, 1, 0, -0.465116, 0, -4.371139e-08, 4.3, 1.35, -0.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurJonctionN" type="MeshInstance3D" parent="ExtensionEst/Chambre" unique_id=1387466185]
+transform = Transform3D(-2.0331041e-09, 0, 1, 0, 1, 0, -0.046512, 0, -4.371139e-08, 4.3, 1.35, -2.8)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurChambreE" type="MeshInstance3D" parent="ExtensionEst/Chambre" unique_id=1819563242]
+transform = Transform3D(-1.0165433e-08, 0, 1, 0, 1, 0, -0.232558, 0, -4.371139e-08, 8.3, 1.35, 0.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="SolChambre" type="MeshInstance3D" parent="ExtensionEst/Chambre" unique_id=3131286]
+transform = Transform3D(0.465116, 0, 0, 0, 1, 0, 0, 0, 0.606061, 6.3, -0.05, -0.6)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="PlafondChambre" type="MeshInstance3D" parent="ExtensionEst/Chambre" unique_id=1039962113]
+transform = Transform3D(0.465116, 0, 0, 0, 1, 0, 0, 0, 0.606061, 6.3, 2.75, -0.6)
+material_override = SubResource("mat_plafond")
+mesh = SubResource("mesh_ceil")
+
+[node name="SDB" type="Node3D" parent="ExtensionEst" unique_id=2062315239]
+
+[node name="MurSDBN" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1962506359]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 1.35, -0.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurSDBE" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1382596768]
+transform = Transform3D(-1.0165433e-08, 0, 1, 0, 1, 0, -0.232558, 0, -4.371139e-08, 10.3, 1.35, 0.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="SolSDB" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1732505313]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, -0.05, 0.4)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="PlafondSDB" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=722534785]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, 2.75, 0.4)
+material_override = SubResource("mat_plafond")
+mesh = SubResource("mesh_ceil")
+
+[node name="Dressing" type="Node3D" parent="ExtensionEst" unique_id=433758910]
+
+[node name="MurDressN" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=248230955]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 1.35, -2.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurDressE" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=1793416305]
+transform = Transform3D(-1.0165433e-08, 0, 1, 0, 1, 0, -0.232558, 0, -4.371139e-08, 10.3, 1.35, -1.6)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurDressO1" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=2105877954]
+transform = Transform3D(-3.5578884e-09, 0, 1, 0, 1, 0, -0.081395, 0, -4.371139e-08, 8.3, 1.35, -2.25)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="MurDressO2" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=841984401]
+transform = Transform3D(-2.54138e-09, 0, 1, 0, 1, 0, -0.05814, 0, -4.371139e-08, 8.3, 1.35, -0.85)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="LinteauD5" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=2062357010]
+transform = Transform3D(-4.0661647e-09, 0, 1, 0, 0.222222, 0, -0.093023, 0, -4.371139e-08, 8.3, 2.4, -1.5)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
+
+[node name="SolDressing" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=1599671110]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, -0.05, -1.6)
+material_override = SubResource("mat_sol")
+mesh = SubResource("mesh_floor")
+
+[node name="PlafondDressing" type="MeshInstance3D" parent="ExtensionEst/Dressing" unique_id=217748204]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, 2.75, -1.6)
+material_override = SubResource("mat_plafond")
+mesh = SubResource("mesh_ceil")
