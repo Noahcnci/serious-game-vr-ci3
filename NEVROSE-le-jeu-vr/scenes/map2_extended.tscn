@@ -210,9 +210,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.49978405, 1.1017449, -2.43
 [node name="Doughnut_D2" parent="Floor" unique_id=1914134508 instance=ExtResource("3_r0jqq")]
 transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, -3.3590975, 1.0978692, -2.227098)
 
-[node name="Sketchfab_Scene" parent="Floor" unique_id=1349239488]
-transform = Transform3D(0.39584646, 0, 0.6952018, 0, 0.8, 0, -0.6952018, 0, 0.39584646, 3.3667965, 0.44914013, -0.83102214)
-
 [node name="Ceiling" type="StaticBody3D" parent="." unique_id=884023542]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.75, 0)
 
@@ -574,6 +571,21 @@ transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 0.181818, 7.3, 2.75, 2)
 material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
+[node name="Paillasson" type="res://assets/kenney/furniture/rugDoormat.glb" parent="ExtensionEst/Couloir" unique_id=74620086]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.85, 0.01, 2)
+
+[node name="PorteManteau" type="res://assets/kenney/furniture/coatRackStanding.glb" parent="ExtensionEst/Couloir" unique_id=896876277]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.68, 0, 1.68)
+
+[node name="TableauCouloirN" type="res://assets/customizgeg/tableau_royesque_framed.glb" parent="ExtensionEst/Couloir" unique_id=1215810207]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 1.45, 1.44)
+
+[node name="TableauCouloirS" type="res://assets/customizgeg/mayozedong_framed.glb" parent="ExtensionEst/Couloir" unique_id=57889472]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.7, 1.45, 2.56)
+
+[node name="PlanteCouloir" type="res://assets/kenney/furniture/plantSmall1.glb" parent="ExtensionEst/Couloir" unique_id=288939372]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.72, 0, 1.62)
+
 [node name="Garage" type="Node3D" parent="ExtensionEst" unique_id=1622907729]
 
 [node name="MurGarageS" type="MeshInstance3D" parent="ExtensionEst/Garage" unique_id=336737895]
@@ -605,6 +617,33 @@ mesh = SubResource("mesh_floor")
 transform = Transform3D(0.697674, 0, 0, 0, 1, 0, 0, 0, 0.606061, 7.3, 2.75, 4.6)
 material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
+
+[node name="LaveLinge" type="res://assets/kenney/furniture/washerDryerStacked.glb" parent="ExtensionEst/Garage" unique_id=1657318772]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 4.78, 0, 3.15)
+
+[node name="Etabli" type="res://assets/kenney/furniture/desk.glb" parent="ExtensionEst/Garage" unique_id=1661155701]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 5.8, 0, 6.2)
+
+[node name="Tabouret" type="res://assets/kenney/furniture/stoolBarSquare.glb" parent="ExtensionEst/Garage" unique_id=974729686]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.7, 0, 6.1)
+
+[node name="EtagereGarage" type="res://assets/kenney/furniture/bookcaseOpen.glb" parent="ExtensionEst/Garage" unique_id=1594739695]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.95, 0, 4.4)
+
+[node name="Radio" type="res://assets/kenney/furniture/radio.glb" parent="ExtensionEst/Garage" unique_id=1469191872]
+transform = Transform3D(-0.98481, 0, 0.17365, 0, 1, 0, -0.17365, 0, -0.98481, 5.8, 0.78, 6.3)
+
+[node name="Carton1" type="res://assets/kenney/furniture/cardboardBoxClosed.glb" parent="ExtensionEst/Garage" unique_id=1142352109]
+transform = Transform3D(0.96593, 0, 0.25882, 0, 1, 0, -0.25882, 0, 0.96593, 9.55, 0, 6.1)
+
+[node name="Carton2" type="res://assets/kenney/furniture/cardboardBoxOpen.glb" parent="ExtensionEst/Garage" unique_id=1946914343]
+transform = Transform3D(0.90631, 0, -0.42262, 0, 1, 0, 0.42262, 0, 0.90631, 9.95, 0, 5.65)
+
+[node name="Carton3" type="res://assets/kenney/furniture/cardboardBoxClosed.glb" parent="ExtensionEst/Garage" unique_id=1924250518]
+transform = Transform3D(0.76604, 0, 0.64279, 0, 1, 0, -0.64279, 0, 0.76604, 9.55, 0.45, 6.1)
+
+[node name="Poubelle" type="res://assets/kenney/furniture/trashcan.glb" parent="ExtensionEst/Garage" unique_id=905418761]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.62, 0, 5.85)
 
 [node name="Chambre" type="Node3D" parent="ExtensionEst" unique_id=1158461240]
 
@@ -638,6 +677,36 @@ transform = Transform3D(0.465116, 0, 0, 0, 1, 0, 0, 0, 0.606061, 6.3, 2.75, -0.6
 material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
+[node name="LitDouble" type="res://assets/kenney/furniture/bedDouble.glb" parent="ExtensionEst/Chambre" unique_id=362085414]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0, -1.6)
+
+[node name="TableNuit" type="res://assets/kenney/furniture/cabinetBedDrawerTable.glb" parent="ExtensionEst/Chambre" unique_id=673601983]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0, -2.3)
+
+[node name="LampeNuit" type="res://assets/kenney/furniture/lampRoundTable.glb" parent="ExtensionEst/Chambre" unique_id=1317635487]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.65, 0.55, -2.3)
+
+[node name="Bureau" type="res://assets/kenney/furniture/desk.glb" parent="ExtensionEst/Chambre" unique_id=1076494282]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0, 1.05)
+
+[node name="ChaiseBureau" type="res://assets/kenney/furniture/chairDesk.glb" parent="ExtensionEst/Chambre" unique_id=1502538878]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0, 0.5)
+
+[node name="EtagereChambre" type="res://assets/kenney/furniture/bookcaseClosed.glb" parent="ExtensionEst/Chambre" unique_id=897385938]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 8.02, 0, -0.3)
+
+[node name="TapisChambre" type="res://assets/kenney/furniture/rugRectangle.glb" parent="ExtensionEst/Chambre" unique_id=1271591647]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.9, 0.01, -0.2)
+
+[node name="PlanteChambre" type="res://assets/kenney/furniture/pottedPlant.glb" parent="ExtensionEst/Chambre" unique_id=1314829972]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.62, 0, -1.75)
+
+[node name="Ordinateur" type="res://assets/kenney/furniture/laptop.glb" parent="ExtensionEst/Chambre" unique_id=1497767954]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 7.55, 0.75, 1)
+
+[node name="Ventilateur" type="res://assets/kenney/furniture/ceilingFan.glb" parent="ExtensionEst/Chambre" unique_id=927888937]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 2.7, -0.6)
+
 [node name="SDB" type="Node3D" parent="ExtensionEst" unique_id=2062315239]
 
 [node name="MurSDBN" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1962506359]
@@ -659,6 +728,21 @@ mesh = SubResource("mesh_floor")
 transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, 2.75, 0.4)
 material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
+
+[node name="Baignoire" type="res://assets/kenney/furniture/bathtub.glb" parent="ExtensionEst/SDB" unique_id=776093777]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.2, 0, -0.25)
+
+[node name="WC" type="res://assets/kenney/furniture/toilet.glb" parent="ExtensionEst/SDB" unique_id=660467442]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 8.68, 0, 1.08)
+
+[node name="Lavabo" type="res://assets/kenney/furniture/bathroomSinkSquare.glb" parent="ExtensionEst/SDB" unique_id=1030075106]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.78, 0, 1.08)
+
+[node name="Miroir" type="res://assets/kenney/furniture/bathroomMirror.glb" parent="ExtensionEst/SDB" unique_id=1730042219]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 9.78, 1.55, 1.38)
+
+[node name="TapisSDB" type="res://assets/kenney/furniture/rugDoormat.glb" parent="ExtensionEst/SDB" unique_id=675742120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 0.01, 0.35)
 
 [node name="Dressing" type="Node3D" parent="ExtensionEst" unique_id=433758910]
 
@@ -696,3 +780,18 @@ mesh = SubResource("mesh_floor")
 transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, 2.75, -1.6)
 material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
+
+[node name="Armoire1" type="res://assets/kenney/furniture/bookcaseClosedDoors.glb" parent="ExtensionEst/Dressing" unique_id=694603609]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.68, 0, -2.42)
+
+[node name="Armoire2" type="res://assets/kenney/furniture/bookcaseClosed.glb" parent="ExtensionEst/Dressing" unique_id=1899596439]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.55, 0, -2.42)
+
+[node name="PorteManteauDressing" type="res://assets/kenney/furniture/coatRackStanding.glb" parent="ExtensionEst/Dressing" unique_id=1327854293]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 10, 0, -0.85)
+
+[node name="CartonDressing" type="res://assets/kenney/furniture/cardboardBoxOpen.glb" parent="ExtensionEst/Dressing" unique_id=529180675]
+transform = Transform3D(0.98481, 0, 0.17365, 0, 1, 0, -0.17365, 0, 0.98481, 8.68, 0, -0.85)
+
+[node name="Coussin" type="res://assets/kenney/furniture/pillow.glb" parent="ExtensionEst/Dressing" unique_id=824677161]
+transform = Transform3D(0.90631, 0, 0.42262, 0, 1, 0, -0.42262, 0, 0.90631, 8.68, 0.35, -0.85)
