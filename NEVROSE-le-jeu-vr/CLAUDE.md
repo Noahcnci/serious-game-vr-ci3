@@ -18,11 +18,12 @@ Fragment 1 (studio) jouable. GDD verrouillé dans `ASSIMILE_GDD.md`.
 ## Chemins importants
 
 - `scripts/main.gd` — cœur du jeu (boucle, XR, déplacement, interaction, folie)
-- `scripts/apartment.gd` — générateur procédural du studio (murs, meubles, conteneurs)
+- `scripts/map_base.gd` — base de toutes les maps (conteneurs, dose, clés, mimics)
+- `scripts/map2_extended.gd` — générateur de la map 2 (extension procédurale Est + jardin)
 - `scripts/procedural_textures.gd` — textures générées au démarrage (plâtre, bois, tissu, carrelage, métal)
 - `scripts/vr_body.gd` — corps FPV visible en baissant les yeux
 - `scenes/main.tscn` — scène racine (XROrigin3D + caméra + 2 manettes)
-- `scenes/studio.tscn` — pièce éditable à la main (sol + murs + plafond + collisions)
+- `scenes/map2_extended.tscn` — LA map du jeu (salon/cuisine + coquille, éditable à la main)
 - `assets/kenney/` — 340 objets GLB (meubles + aliments), licence CC0
 - `assets/hands/` — mains VR low-poly (godot-xr-tools)
 - `build/nevrose_quest2.apk` — l'APK exportée
@@ -41,15 +42,17 @@ Fragment 1 (studio) jouable. GDD verrouillé dans `ASSIMILE_GDD.md`.
 
 - `get_viewport().use_xr = true` dans `_init_openxr()` — sinon écran noir total
 - `move.y = -move.y` après `get_vector2` — sinon stick inversé sur Quest
-- `apartment.gd` expose `get_dose()` pour la proximité de la main
+- `apartment` (la map, `MapBase`) expose `get_dose()` pour la proximité de la main
 - Les conteneurs (`InteractiveContainer`) ont besoin d'un `Area3D` enfant nommé `area`
 
 ## Modifier la map à la main
 
-1. Ouvrir `scenes/studio.tscn` dans l'éditeur Godot
+1. Ouvrir `scenes/map2_extended.tscn` dans l'éditeur Godot
 2. Glisser-déposer les objets depuis `assets/kenney/furniture/` ou `food/`
 3. Bouger avec **W** (déplacer), **E** (pivoter), **R** (redimensionner)
 4. Pour un mur unique : clic droit sur Mesh → "Make Unique" avant de modifier
+5. Les GLB Kenney sont natifs ~0,4× l'échelle réelle → les meubles du .tscn
+   sont à **×2,5** ; viser la même échelle pour rester cohérent
 
 ## Déploiement Quest 2
 

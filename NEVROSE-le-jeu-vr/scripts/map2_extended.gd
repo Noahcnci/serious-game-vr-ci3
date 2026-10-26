@@ -3,7 +3,8 @@ extends MapBase
 ## Map 2 étendue : salon + cuisine (existant) + couloir, garage, chambre,
 ## salle de bain, dressing (nouvelles pièces).
 ##
-## La coquille existante vient de scenes/map2_extended.tscn (clone de map2_living.tscn).
+## La coquille existante vient de scenes/map2_extended.tscn (ancienne map 2
+## living, conservée comme unique scène de la map).
 ## Les nouvelles pièces sont construites ici procéduralement :
 ##   - Couloir : murs/sol/plafond + portes vers les nouvelles pièces.
 ##   - Garage : béton, établi, lave-linge, cartons, conteneur FORCEABLE.
@@ -22,7 +23,7 @@ const QUAT := "res://assets/quaternius/"
 ## Facteur d'échelle global pour les modèles Quaternius (décimètres → mètres).
 const QUATERNIUS_SCALE := 0.5
 
-# Matériaux existants (repris de map2_living.gd)
+# Matériaux existants (repris de l'ancienne map 2 living)
 var _mat_bois: StandardMaterial3D
 var _mat_meuble: StandardMaterial3D
 var _mat_metal: StandardMaterial3D
@@ -277,11 +278,12 @@ func _build_garage(parent: Node3D) -> void:
 	root.add_child(glight)
 	_reg_flicker(glight, 0.8)
 
-	# Conteneur : tiroir de l'établi (FORCEABLE)
+	# Conteneur : tiroir de l'établi (NON verrouillé — seul tiroir libre de la
+	# map, le smoke test s'y accroche pour vérifier l'ouverture coulissante)
 	_make_container(root, "GarageDrawer",
 		InteractiveContainer.Mode.SLIDE,
 		Vector3(6.5, 0.36, -1.35), Vector3.BACK, 0.42, 115.0,
-		InteractiveContainer.LockType.FORCEABLE,
+		InteractiveContainer.LockType.NONE,
 		Vector3(0.45, 0.16, 0.03), _mat_metal)
 
 
@@ -454,8 +456,8 @@ func _build_dressing(parent: Node3D) -> void:
 # GAMEPLAY rétrofit (pièce existante)
 # ---------------------------------------------------------------------------
 func _build_existing_gameplay() -> void:
-	# Les conteneurs existants de la map 2 sont dans map2_living.gd
-	# On les recrée ici pour qu'ils soient dans le même arbre que la map étendue
+	# Les conteneurs de la pièce existante (salon/cuisine, dans le .tscn)
+	# sont recréés ici pour qu'ils soient dans le même arbre que la map étendue
 	# Tiroir cuisine verrouillé par clé
 	_make_container(self, "KitchenDrawerKey",
 		InteractiveContainer.Mode.SLIDE,

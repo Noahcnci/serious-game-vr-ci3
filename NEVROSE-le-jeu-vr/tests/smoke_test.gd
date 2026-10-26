@@ -47,7 +47,7 @@ func _initialize() -> void:
 	main.phone.toggle_pocket()
 	_assert(not main.phone.is_in_hand, "A: retour du téléphone dans la poche")
 
-	# --- B : appartement (Map2Living — salon + cuisine) ---
+	# --- B : appartement (Map2Extended — salon + cuisine + extension) ---
 	var apt: MapBase = main.apartment
 	_assert(apt != null, "B: appartement (MapBase) instancié")
 	_assert(apt.get_node_or_null("Shell/Floor") != null, "B: sol construit")

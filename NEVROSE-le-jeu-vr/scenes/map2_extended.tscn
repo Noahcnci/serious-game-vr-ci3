@@ -26,7 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://ciw5cxobvbm3w" path="res://assets/KloWorks_Healthy&Junk_Food_Pack/KloWorks_Healthy&Junk_Food_Kit/Gltf/Healthy_Food/Salmon.glb" id="26_yydf7"]
 [ext_resource type="PackedScene" uid="uid://et7se7hknemq" path="res://assets/KloWorks_Healthy&Junk_Food_Pack/KloWorks_Healthy&Junk_Food_Kit/Gltf/Junk_Food/Pizza.glb" id="27_35e0n"]
 [ext_resource type="PackedScene" uid="uid://3711iglko6ps" path="res://assets/Gun&Knife/low_poly_knife.glb" id="30_r0jqq"]
-[ext_resource type="Script" uid="uid://cytslknhkiv7f" path="res://scripts/rats.gd" id="55_hxs6d"]
+[ext_resource type="Script" path="res://scripts/rats.gd" id="55_hxs6d"]
 [ext_resource type="PackedScene" uid="uid://dinh7mb6idk63" path="res://assets/kenney/furniture/bathtub.glb" id="mob_bathtub"]
 [ext_resource type="PackedScene" uid="uid://lku2n088k5yy" path="res://assets/kenney/furniture/bedDouble.glb" id="mob_bed"]
 [ext_resource type="PackedScene" uid="uid://errkropianqq" path="res://assets/kenney/furniture/bookcaseClosed.glb" id="mob_bookclosed"]

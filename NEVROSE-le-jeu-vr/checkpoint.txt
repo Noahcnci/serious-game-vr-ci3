@@ -54,8 +54,10 @@ project.godot           config : nom, main scene, autoload GameLog, file_logging
 scenes/main.tscn        scène principale Node3D + XROrigin3D/XRCamera3D/2 manettes
 scripts/main.gd         cœur du jeu (~470 l.) : OpenXR, déplacement, snap 45°,
                         rayon d'interaction, sanity, chat compte à rebours, HUD
-scripts/apartment.gd    générateur procédural du studio (murs, lit, cuisine,
-                        placard, table, TV, tapis, plante, lampes, mimics)
+scripts/map_base.gd      classe de base des maps (conteneurs, dose, clés,
+                         mimics, helper placement GLB)
+scripts/map2_extended.gd générateur de la map 2 : coquille salon/cuisine
+                         (map2_extended.tscn) + extension Est + jardin procéduraux
 scripts/container.gd    tiroirs + placard (InteractiveContainer, ouverture animée)
 scripts/pill.gd         la Dose (pilule cyan, Area3D cliquable)
 scripts/mimic.gd        la fausse tasse qui tremble (Mimic)

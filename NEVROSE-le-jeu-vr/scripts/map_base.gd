@@ -9,7 +9,7 @@ extends Node3D
 ##   - dérive "folie" des matériaux (teinte calm → sick, GDD §5.2)
 ##   - helper de placement des assets GLB Kenney (meuble statique + collision)
 ##
-## Une sous-classe concrète (Map2Living, Apartment…) surcharge build() et
+## Une sous-classe concrète (Map2Extended…) surcharge build() et
 ## appelle _register_spawn_spots() quand la géométrie est prête.
 
 # Dimensions de la pièce — la sous-classe les surchargent AVANT build().
