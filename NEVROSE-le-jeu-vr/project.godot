@@ -30,6 +30,10 @@ file_logging/enable_file_logging=true
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
+
 [physics]
 
 3d/default_gravity=9.81
