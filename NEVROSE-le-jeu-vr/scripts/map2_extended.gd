@@ -23,6 +23,25 @@ const QUAT := "res://assets/quaternius/"
 ## Facteur d'échelle global pour les modèles Quaternius (décimètres → mètres).
 const QUATERNIUS_SCALE := 0.5
 
+## Échelles par meuble pour atteindre la taille RÉELLE (mesurées sur les AABB
+## natives, cf. tools/measure_glb.gd). Les GLB Kenney sont natifs ~0,4× la
+## réalité, MAIS les grands modèles (lit, bibliothèque, douche, baignoire…)
+## sont déjà larges nativement et prennent un facteur plus faible — exactement
+## comme le salon dans le .tscn (canapé ×2, tapis rond ×1,75, poubelle ×2,25).
+const FURN_SCALE := {
+	"tableCross.glb": 2.5, "washer.glb": 1.8, "bookcaseOpen.glb": 2.2,
+	"bookcaseClosed.glb": 2.2, "cardboardBoxClosed.glb": 1.7,
+	"cardboardBoxOpen.glb": 1.7, "trashcan.glb": 1.3,
+	"coatRackStanding.glb": 2.3, "rugDoormat.glb": 1.5,
+	"bedDouble.glb": 1.6, "cabinetBedDrawerTable.glb": 1.9,
+	"cabinetBedDrawer.glb": 1.9, "desk.glb": 1.9, "chairDesk.glb": 1.5,
+	"lampRoundTable.glb": 1.5, "rugRectangle.glb": 1.2, "pottedPlant.glb": 1.5,
+	"pillow.glb": 1.7, "pillowLong.glb": 1.7, "toilet.glb": 1.7,
+	"bathroomSinkSquare.glb": 1.4, "bathroomCabinet.glb": 1.6,
+	"bathroomMirror.glb": 1.6, "shower.glb": 0.9,
+	"bathroomCabinetDrawer.glb": 1.5, "bathtub.glb": 1.45, "coatRack.glb": 1.2,
+}
+
 # Matériaux existants (repris de l'ancienne map 2 living)
 var _mat_bois: StandardMaterial3D
 var _mat_meuble: StandardMaterial3D
@@ -197,9 +216,9 @@ func _build_corridor(parent: Node3D) -> void:
 	_plinthe(root, "CorrPlintheW", Vector3(4.08, 0.04, 0), Vector3(0.02, 0.08, 5.9))
 	_plinthe(root, "CorrPlintheE", Vector3(5.27, 0.04, 0), Vector3(0.02, 0.08, 5.9))
 
-	# Décor couloir
-	_place_furniture(root, FURN + "coatRackStanding.glb", Vector3(4.3, 0, -2.5), 90.0)
-	_place_furniture(root, FURN + "rugDoormat.glb", Vector3(4.675, 0, 0), 0.0)
+	# Décor couloir (échelles réelles : décalés pour ne pas traverser les murs)
+	_mob(root, "coatRackStanding.glb", Vector3(4.45, 0, -2.5), 90.0)
+	_mob(root, "rugDoormat.glb", Vector3(4.675, 0, 0), 0.0)
 
 	# Cadres photo
 	_box(root, "CorrFrame1", Vector3(0.44, 0.56, 0.03), Vector3(4.15, 1.6, -1.0), _mat_cadre)
@@ -248,19 +267,19 @@ func _build_garage(parent: Node3D) -> void:
 	_box(root, "GarageDoorLintel", Vector3(2.2, 0.1, 0.1), Vector3(7.275, 2.2, -2.9), _mat_porte)
 
 	# Meubles garage
-	_place_furniture(root, FURN + "tableCross.glb", Vector3(6.5, 0, -1.5), 0.0)
-	_place_furniture(root, FURN + "washer.glb", Vector3(8.8, 0, -2.5), 180.0)
-	_place_furniture(root, FURN + "bookcaseOpen.glb", Vector3(9.0, 0, -0.5), -90.0)
+	_mob(root, "tableCross.glb", Vector3(6.5, 0, -1.5), 0.0)
+	_mob(root, "washer.glb", Vector3(8.8, 0, -2.5), 180.0)
+	_mob(root, "bookcaseOpen.glb", Vector3(9.0, 0, -0.5), -90.0)
 
 	# Cartons
-	_place_furniture(root, FURN + "cardboardBoxClosed.glb", Vector3(5.8, 0, -2.5), 15.0)
-	_place_furniture(root, FURN + "cardboardBoxClosed.glb", Vector3(6.2, 0, -2.2), -10.0)
-	_place_furniture(root, FURN + "cardboardBoxOpen.glb", Vector3(5.9, 0, -1.8), 30.0)
-	_place_furniture(root, FURN + "cardboardBoxClosed.glb", Vector3(8.5, 0, 1.5), 45.0)
-	_place_furniture(root, FURN + "cardboardBoxOpen.glb", Vector3(8.0, 0, 1.3), -20.0)
+	_mob(root, "cardboardBoxClosed.glb", Vector3(5.8, 0, -2.5), 15.0)
+	_mob(root, "cardboardBoxClosed.glb", Vector3(6.2, 0, -2.2), -10.0)
+	_mob(root, "cardboardBoxOpen.glb", Vector3(5.9, 0, -1.8), 30.0)
+	_mob(root, "cardboardBoxClosed.glb", Vector3(8.5, 0, 1.5), 45.0)
+	_mob(root, "cardboardBoxOpen.glb", Vector3(8.0, 0, 1.3), -20.0)
 
 	# Poubelle
-	_place_furniture(root, FURN + "trashcan.glb", Vector3(9.0, 0, 1.5), 0.0)
+	_mob(root, "trashcan.glb", Vector3(9.0, 0, 1.5), 0.0)
 
 	# Pneus (cylindres)
 	_tire(root, "Tire1", Vector3(5.8, 0.15, 0.5))
@@ -279,10 +298,11 @@ func _build_garage(parent: Node3D) -> void:
 	_reg_flicker(glight, 0.8)
 
 	# Conteneur : tiroir de l'établi (NON verrouillé — seul tiroir libre de la
-	# map, le smoke test s'y accroche pour vérifier l'ouverture coulissante)
+	# map, le smoke test s'y accroche pour vérifier l'ouverture coulissante).
+	# y = 0,65 : tiroir réel de l'établi à l'échelle ×2,5.
 	_make_container(root, "GarageDrawer",
 		InteractiveContainer.Mode.SLIDE,
-		Vector3(6.5, 0.36, -1.35), Vector3.BACK, 0.42, 115.0,
+		Vector3(6.5, 0.65, -1.35), Vector3.BACK, 0.42, 115.0,
 		InteractiveContainer.LockType.NONE,
 		Vector3(0.45, 0.16, 0.03), _mat_metal)
 
@@ -309,17 +329,18 @@ func _build_chambre(parent: Node3D) -> void:
 	_ceiling(root, "ChambreCeiling", Vector3(6.775, 2.75, 4.0), Vector3(3.0, 0.1, 4.0), _mat_meuble)
 
 	# Meubles chambre
-	_place_furniture(root, FURN + "bedDouble.glb", Vector3(7.5, 0, 5.0), 180.0)
-	_place_furniture(root, FURN + "cabinetBedDrawerTable.glb", Vector3(5.7, 0, 5.5), 90.0)
-	_place_furniture(root, FURN + "bookcaseClosed.glb", Vector3(5.8, 0, 3.0), 90.0)
-	_place_furniture(root, FURN + "desk.glb", Vector3(7.5, 0, 2.8), 0.0)
-	_place_furniture(root, FURN + "chairDesk.glb", Vector3(7.5, 0, 3.3), 180.0)
+	# Lit décalé de 10 cm pour ne pas toucher le mur Est à l'échelle réelle
+	_mob(root, "bedDouble.glb", Vector3(7.4, 0, 5.0), 180.0)
+	_mob(root, "cabinetBedDrawerTable.glb", Vector3(5.7, 0, 5.5), 90.0)
+	_mob(root, "bookcaseClosed.glb", Vector3(5.8, 0, 3.0), 90.0)
+	_mob(root, "desk.glb", Vector3(7.5, 0, 2.8), 0.0)
+	_mob(root, "chairDesk.glb", Vector3(7.5, 0, 3.3), 180.0)
 
 	# Déco
-	_place_furniture(root, FURN + "lampRoundTable.glb", Vector3(5.7, 0.55, 5.5), 0.0)
-	_place_furniture(root, FURN + "rugRectangle.glb", Vector3(6.775, 0, 4.5), 0.0)
-	_place_furniture(root, FURN + "pottedPlant.glb", Vector3(8.0, 0, 2.5), 0.0)
-	_place_furniture(root, FURN + "pillow.glb", Vector3(7.3, 0.6, 5.0), 0.0)
+	_mob(root, "lampRoundTable.glb", Vector3(5.7, 0.50, 5.5), 0.0)
+	_mob(root, "rugRectangle.glb", Vector3(6.775, 0, 4.5), 0.0)
+	_mob(root, "pottedPlant.glb", Vector3(8.0, 0, 2.5), 0.0)
+	_mob(root, "pillow.glb", Vector3(7.3, 0.60, 5.0), 0.0)
 
 	# Cadre photo
 	_box(root, "ChambreFrame", Vector3(0.44, 0.56, 0.03), Vector3(6.5, 1.6, 5.92), _mat_cadre)
@@ -335,10 +356,10 @@ func _build_chambre(parent: Node3D) -> void:
 	root.add_child(chlight)
 	_reg_flicker(chlight, 0.9)
 
-	# Conteneur : tiroir table de nuit (KEY)
+	# Conteneur : tiroir table de nuit (KEY) — y calé sur le chevet ×1,9
 	_make_container(root, "NightstandDrawer",
 		InteractiveContainer.Mode.SLIDE,
-		Vector3(5.7, 0.36, 5.4), Vector3.BACK, 0.35, 115.0,
+		Vector3(5.7, 0.30, 5.4), Vector3.BACK, 0.35, 115.0,
 		InteractiveContainer.LockType.KEY,
 		Vector3(0.4, 0.14, 0.03), _mat_bois)
 
@@ -370,16 +391,17 @@ func _build_sdb(parent: Node3D) -> void:
 	# Plafond
 	_ceiling(root, "SDBCeiling", Vector3(6.525, 2.75, 3.5), Vector3(2.5, 0.1, 3.0), _mat_mur_sdb)
 
-	# Sanitaires
-	_place_furniture(root, FURN + "toilet.glb", Vector3(7.3, 0, 4.5), 180.0)
-	_place_furniture(root, FURN + "bathroomSinkSquare.glb", Vector3(5.8, 0, 4.5), 90.0)
-	_place_furniture(root, FURN + "bathroomCabinet.glb", Vector3(5.8, 0, 3.5), 90.0)
-	_place_furniture(root, FURN + "bathroomMirror.glb", Vector3(5.55, 1.2, 4.5), 90.0)
-	_place_furniture(root, FURN + "shower.glb", Vector3(7.0, 0, 2.5), 0.0)
-	_place_furniture(root, FURN + "bathroomCabinetDrawer.glb", Vector3(7.5, 0, 3.0), -90.0)
+	# Sanitaires (échelles réelles ; baignoire décalée pour ne pas dépasser
+	# du mur Est de la SDB)
+	_mob(root, "toilet.glb", Vector3(7.3, 0, 4.5), 180.0)
+	_mob(root, "bathroomSinkSquare.glb", Vector3(5.8, 0, 4.5), 90.0)
+	_mob(root, "bathroomCabinet.glb", Vector3(5.8, 0, 3.5), 90.0)
+	_mob(root, "bathroomMirror.glb", Vector3(5.55, 1.0, 4.5), 90.0)
+	_mob(root, "shower.glb", Vector3(6.8, 0, 2.5), 0.0)
+	_mob(root, "bathroomCabinetDrawer.glb", Vector3(7.5, 0, 3.0), -90.0)
 
 	# Tapis de bain
-	_place_furniture(root, FURN + "rugRectangle.glb", Vector3(6.5, 0, 3.5), 0.0)
+	_mob(root, "rugRectangle.glb", Vector3(6.5, 0, 3.5), 0.0)
 
 	# Serviettes (boîtes colorées)
 	_box(root, "Towel1", Vector3(0.4, 0.6, 0.05), Vector3(5.55, 1.2, 3.0), _new_mat(Color(0.6, 0.75, 0.8)))
@@ -424,14 +446,14 @@ func _build_dressing(parent: Node3D) -> void:
 	# Plafond
 	_ceiling(root, "DressCeiling", Vector3(9.275, 2.75, 3.5), Vector3(2.0, 0.1, 3.0), _mat_meuble)
 
-	# Meubles dressing
-	_place_furniture(root, FURN + "bookcaseOpen.glb", Vector3(9.8, 0, 2.5), 180.0)
-	_place_furniture(root, FURN + "bookcaseOpen.glb", Vector3(9.8, 0, 3.5), 180.0)
-	_place_furniture(root, FURN + "cabinetBedDrawer.glb", Vector3(8.6, 0, 4.5), 90.0)
-	_place_furniture(root, FURN + "coatRack.glb", Vector3(9.9, 0, 4.5), -90.0)
-	_place_furniture(root, FURN + "bathroomMirror.glb", Vector3(9.275, 1.5, 4.9), 180.0)
-	_place_furniture(root, FURN + "pillowLong.glb", Vector3(9.8, 1.0, 3.0), 0.0)
-	_place_furniture(root, FURN + "cardboardBoxClosed.glb", Vector3(8.6, 0, 2.5), 20.0)
+	# Meubles dressing (coatRack = porte-manteau MURAL, monté au mur Est)
+	_mob(root, "bookcaseOpen.glb", Vector3(9.8, 0, 2.5), 180.0)
+	_mob(root, "bookcaseOpen.glb", Vector3(9.8, 0, 3.5), 180.0)
+	_mob(root, "cabinetBedDrawer.glb", Vector3(8.6, 0, 4.5), 90.0)
+	_mob(root, "coatRack.glb", Vector3(10.1, 1.4, 4.5), -90.0)
+	_mob(root, "bathroomMirror.glb", Vector3(9.275, 1.4, 4.9), 180.0)
+	_mob(root, "pillowLong.glb", Vector3(9.8, 0.66, 3.0), 0.0)
+	_mob(root, "cardboardBoxClosed.glb", Vector3(8.6, 0, 2.5), 20.0)
 
 	# Lumière dressing
 	var dlight := OmniLight3D.new()
@@ -444,10 +466,10 @@ func _build_dressing(parent: Node3D) -> void:
 	root.add_child(dlight)
 	_reg_flicker(dlight, 0.7)
 
-	# Conteneur : tiroir commode (FORCEABLE)
+	# Conteneur : tiroir commode (FORCEABLE) — y calé sur la commode ×1,9
 	_make_container(root, "DresserDrawer",
 		InteractiveContainer.Mode.SLIDE,
-		Vector3(8.6, 0.36, 4.4), Vector3.BACK, 0.35, 115.0,
+		Vector3(8.6, 0.30, 4.4), Vector3.BACK, 0.35, 115.0,
 		InteractiveContainer.LockType.FORCEABLE,
 		Vector3(0.4, 0.14, 0.03), _mat_bois)
 
@@ -491,7 +513,7 @@ func _place_mimics() -> void:
 	fake1.name = "MugMimic"
 	add_child(fake1)
 	fake1.position = Vector3(0.30, 0.57, 1.05)
-	_place_furniture(fake1, FOOD + "cup-tea.glb", Vector3.ZERO, 0.0)
+	_place_furniture(fake1, FOOD + "cup-tea.glb", Vector3.ZERO, 0.0, 1.0)
 	var cs1 := CollisionShape3D.new()
 	var bs1 := BoxShape3D.new()
 	bs1.size = Vector3(0.16, 0.16, 0.16)
@@ -505,7 +527,7 @@ func _place_mimics() -> void:
 	fake2.name = "SideTableMimic"
 	add_child(fake2)
 	fake2.position = Vector3(-3.55, 0.41, -0.05)
-	_place_furniture(fake2, FOOD + "cup-tea.glb", Vector3.ZERO, 30.0)
+	_place_furniture(fake2, FOOD + "cup-tea.glb", Vector3.ZERO, 30.0, 1.0)
 	var cs2 := CollisionShape3D.new()
 	var bs2 := BoxShape3D.new()
 	bs2.size = Vector3(0.16, 0.16, 0.16)
@@ -536,10 +558,10 @@ func _register_spawn_spots() -> void:
 	_spawn_spots.append({"pos": Vector3.ZERO, "container": null, "floor": true}) # sol map 2
 
 	# --- Nouvelles pièces ---
-	# Garage : tiroir établi (FORCEABLE)
+	# Garage : tiroir établi (FORCEABLE→NONE, pos ignorée : tiroir coulissant)
 	for c in containers:
 		if c.name.begins_with("GarageDrawer"):
-			_spawn_spots.append({"pos": Vector3(6.5, 0.55, -1.5), "container": c})
+			_spawn_spots.append({"pos": Vector3(6.5, 0.70, -1.5), "container": c})
 	# Chambre : tiroir table nuit (KEY)
 	for c in containers:
 		if c.name.begins_with("NightstandDrawer"):
@@ -557,12 +579,12 @@ func _register_spawn_spots() -> void:
 		if c.name.begins_with("DresserDrawer"):
 			_spawn_spots.append({"pos": Vector3(8.6, 0.5, 4.4), "container": c})
 
-	# Surfaces ouvertes nouvelles pièces
-	_spawn_spots.append({"pos": Vector3(6.5, 0.82, -1.5), "container": null}) # établi garage
-	_spawn_spots.append({"pos": Vector3(7.5, 0.6, 5.0), "container": null}) # lit chambre
-	_spawn_spots.append({"pos": Vector3(7.5, 0.78, 2.8), "container": null}) # bureau chambre
-	_spawn_spots.append({"pos": Vector3(5.8, 0.82, 4.5), "container": null}) # lavabo SDB
-	_spawn_spots.append({"pos": Vector3(9.8, 1.0, 3.0), "container": null}) # étagère dressing
+	# Surfaces ouvertes nouvelles pièces (y = plateau réel à l'échelle corrigée)
+	_spawn_spots.append({"pos": Vector3(6.5, 0.90, -1.5), "container": null}) # établi garage
+	_spawn_spots.append({"pos": Vector3(7.4, 0.62, 5.0), "container": null}) # lit chambre
+	_spawn_spots.append({"pos": Vector3(7.5, 0.75, 2.8), "container": null}) # bureau chambre
+	_spawn_spots.append({"pos": Vector3(5.8, 0.90, 4.5), "container": null}) # lavabo SDB
+	_spawn_spots.append({"pos": Vector3(9.8, 0.66, 3.0), "container": null}) # étagère dressing
 	_spawn_spots.append({"pos": Vector3(4.675, 0.0, 0.0), "container": null, "floor": true}) # sol couloir
 	_spawn_spots.append({"pos": Vector3(7.275, 0.0, -0.5), "container": null, "floor": true}) # sol garage
 	_spawn_spots.append({"pos": Vector3(6.775, 0.0, 4.0), "container": null, "floor": true}) # sol chambre
@@ -575,10 +597,10 @@ func _key_spots() -> Array[Vector3]:
 		Vector3(3.62, 2.22, 0.00),   # bibliothèque
 		Vector3(-3.55, 0.41, -0.20), # table d'appoint
 		Vector3(0.60, 0.96, 1.90),   # canapé
-		Vector3(6.5, 0.82, -1.5),    # établi garage
-		Vector3(7.5, 0.78, 2.8),     # bureau chambre
-		Vector3(5.8, 0.82, 4.5),     # lavabo SDB
-		Vector3(9.8, 1.0, 3.0),      # étagère dressing
+		Vector3(6.5, 0.90, -1.5),    # établi garage
+		Vector3(7.5, 0.75, 2.8),     # bureau chambre
+		Vector3(5.8, 0.90, 4.5),     # lavabo SDB
+		Vector3(9.8, 0.66, 3.0),     # étagère dressing
 		Vector3(4.675, 0.0, 0.0),    # sol couloir
 	]
 
@@ -647,5 +669,11 @@ func _tire(parent: Node, name: String, pos: Vector3) -> MeshInstance3D:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+## Pose un meuble Kenney à son échelle réelle (FURN_SCALE, défaut ×2,5).
+func _mob(parent: Node, glb_name: String, pos: Vector3, rot_y := 0.0) -> Node3D:
+	return _place_furniture(parent, FURN + glb_name, pos, rot_y,
+		FURN_SCALE.get(glb_name, 2.5))
+
+
 func _place_food(parent: Node, glb_name: String, pos: Vector3, rot_y := 0.0) -> Node3D:
 	return _place_furniture(parent, FOOD + glb_name, pos, rot_y)

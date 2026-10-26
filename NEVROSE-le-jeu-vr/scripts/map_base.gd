@@ -50,7 +50,8 @@ func build() -> void:
 ## Instancie un GLB Kenney, l'ajoute sous `parent`, le pose à `pos` (pieds au
 ## sol), l'oriente de `rot_y` degrés, et lui donne une collision凸e (boîte
 ## ajustée sur le mesh). Retourne la racine instanciée.
-func _place_furniture(parent: Node, glb_path: String, pos: Vector3, rot_y := 0.0) -> Node3D:
+func _place_furniture(parent: Node, glb_path: String, pos: Vector3, rot_y := 0.0,
+		p_scale := 1.0) -> Node3D:
 	var packed: PackedScene = load(glb_path)
 	if packed == null:
 		push_warning("MapBase: GLB introuvable %s" % glb_path)
@@ -60,6 +61,7 @@ func _place_furniture(parent: Node, glb_path: String, pos: Vector3, rot_y := 0.0
 	parent.add_child(n)
 	n.position = pos
 	n.rotation.y = deg_to_rad(rot_y)
+	n.scale = Vector3.ONE * p_scale
 	_add_box_collision(n)
 	return n
 

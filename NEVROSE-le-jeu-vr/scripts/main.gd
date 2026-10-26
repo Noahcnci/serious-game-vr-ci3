@@ -69,6 +69,7 @@ var _pointed: Node = null # conteneur/pilule actuellement pointé
 var _chat_hold := 0.0 # temps restant avant retour au compte à rebours
 var _chat_accum := 0.0
 var _creepy_idx := 0
+var _chat_msg_count := 0 # total de lignes creepy — 1 message Messenger sur 3
 
 var apartment: MapBase
 var vignette_rect: ColorRect
@@ -233,6 +234,10 @@ func _build_player_body() -> void:
 	_left_hand_mesh = HAND_SCENE_L.instantiate()
 	left_hand.add_child(_left_hand_mesh)
 	_log("WORLD", "mains animées (godot-xr-tools) attachées : grip=pointer, grip+trigger=saisir")
+	# Corps FPV : uniquement en VR. En fallback bureau la caméra est à 1,7 m
+	# fixe → on se retrouverait à l'intérieur du buste (torse à y=1,25).
+	if not xr_active:
+		return
 	_body = VRBody.new()
 	_body.name = "PlayerBody"
 	xr_origin.add_child(_body)
@@ -731,13 +736,21 @@ func _tick_chat(delta: float, t: float) -> void:
 		pool = CHAT_INQUIET
 	var line: String = pool[_creepy_idx % pool.size()]
 	_creepy_idx += 1
-	_update_chat("Il te reste %d:%02d avant que ça bascule.\n%s" % [mm, ss, line], line, is_alert)
+	# Le compte à rebours reste dans le chat HUD à chaque tick, mais le message
+	# Messenger (et son carillon) ne part que 1 fois sur 3 — sinon le téléphone
+	# harcèle le joueur toutes les ~4 s.
+	_chat_msg_count += 1
+	if _chat_msg_count % 3 == 0:
+		_update_chat("Il te reste %d:%02d avant que ça bascule.\n%s" % [mm, ss, line], line, is_alert)
+	else:
+		_update_chat("Il te reste %d:%02d avant que ça bascule.\n%s" % [mm, ss, line], "", false, false)
 
 
-func _update_chat(text: String, phone_line: String = "", is_alert: bool = false) -> void:
+func _update_chat(text: String, phone_line: String = "", is_alert: bool = false,
+		notify_phone := true) -> void:
 	_chat_hold = 3.0
 	chat_label.text = text
-	if phone:
+	if phone and notify_phone:
 		var msg: String = phone_line if not phone_line.is_empty() else text
 		phone.receive_message(msg, is_alert)
 
