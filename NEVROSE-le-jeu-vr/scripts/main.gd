@@ -22,9 +22,9 @@ const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 
 # Limites de la pièce pour le clamp de déplacement (mur = mur, zéro collision coûteuse)
 # Map 2 étendue : salon+cuisine+couloir+garage+chambre+sdb+dressing
-# x ∈ [-3.7, 10.0], z ∈ [-2.7, 6.3]
+# x ∈ [-3.7, 12.0], z ∈ [-2.7, 6.3]
 const ROOM_MIN := Vector2(-3.7, -2.7)
-const ROOM_MAX := Vector2(10.0, 6.3)
+const ROOM_MAX := Vector2(12.0, 6.3)
 
 # Lobby cosy : mêmes contrôles, mais folie et gameplay en pause.
 const LOBBY_SCENE := preload("res://scenes/lobby.tscn")
@@ -69,6 +69,8 @@ var dose_count := 0
 
 var _snap_cooldown := 0.0
 var _desktop_yaw := 0.0
+var _desktop_pitch := 0.0
+var _movement_body: CharacterBody3D = null
 var _pointed: Node = null # conteneur/pilule actuellement pointé
 var _chat_hold := 0.0 # temps restant avant retour au compte à rebours
 var _chat_accum := 0.0
@@ -127,6 +129,7 @@ func _ready() -> void:
 	left_hand.button_pressed.connect(_on_left_button_pressed)
 	_init_openxr()
 	_build_player_body()
+	_build_player_collision()
 	_build_hud()
 	_build_lobby()
 	_register_debug_inputs()
@@ -140,6 +143,8 @@ func _build_lobby() -> void:
 	xr_origin.position = Vector3(1.0, 1.7 if not xr_active else 0.0, 1.35)
 	xr_origin.rotation = Vector3.ZERO
 	_desktop_yaw = 0.0
+	_desktop_pitch = 0.0
+	xr_camera.rotation = Vector3.ZERO
 	chat_label.text = ""
 
 	if xr_active:
@@ -177,6 +182,8 @@ func start_game() -> void:
 	xr_origin.position = Vector3(0.0, 1.7 if not xr_active else 0.0, 0.0)
 	xr_origin.rotation = Vector3.ZERO
 	_desktop_yaw = 0.0
+	_desktop_pitch = 0.0
+	xr_camera.rotation = Vector3.ZERO
 	_build_world()
 	_build_phone()
 	_spawn_dose()
@@ -304,6 +311,26 @@ func _build_player_body() -> void:
 
 
 
+## Capsule de déplacement partagée VR/bureau. Les StaticBody3D de la map
+## restent simples : une capsule et des boîtes, aucun RigidBody.
+func _build_player_collision() -> void:
+	_movement_body = CharacterBody3D.new()
+	_movement_body.name = "MovementBody"
+	_movement_body.collision_layer = 2
+	_movement_body.collision_mask = 1
+	_movement_body.safe_margin = 0.02
+	xr_origin.add_child(_movement_body)
+	_movement_body.position.y = -1.7 if not xr_active else 0.0
+	var collision := CollisionShape3D.new()
+	collision.name = "Capsule"
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.28
+	capsule.height = 1.7
+	collision.shape = capsule
+	collision.position.y = 0.85
+	_movement_body.add_child(collision)
+
+
 # ---------------------------------------------------------------------------
 # HUD : vignette de folie (shader), chat compte à rebours, point central
 # ---------------------------------------------------------------------------
@@ -419,8 +446,15 @@ func _unhandled_input(event: InputEvent) -> void:
 	if xr_active or game_over:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_desktop_yaw -= event.relative.x * 0.0025
-		xr_origin.rotation.y = _desktop_yaw
+		_update_desktop_look(event.relative)
+
+
+## Séparé de la capture Windows pour tester la même logique en headless.
+func _update_desktop_look(relative: Vector2) -> void:
+	_desktop_yaw -= relative.x * 0.0025
+	_desktop_pitch = clampf(_desktop_pitch - relative.y * 0.0025, deg_to_rad(-80.0), deg_to_rad(80.0))
+	xr_origin.rotation.y = _desktop_yaw
+	xr_camera.rotation.x = _desktop_pitch
 
 
 # ---------------------------------------------------------------------------
@@ -449,8 +483,8 @@ func _tick_sanity(delta: float) -> void:
 		_trigger_game_over()
 
 
-# Déplacement : stick gauche (VR) / WASD (bureau). Vitesse constante, clampé
-# aux murs de la pièce — pas de RigidBody, coût nul pour le Quest 2.
+# Déplacement : stick gauche (VR) / WASD (bureau). Capsule CharacterBody3D
+# + clamp extérieur pour les limites — aucun RigidBody, léger pour Quest 2.
 func _tick_movement(delta: float) -> void:
 	var move := Vector2.ZERO
 	if xr_active:
@@ -496,7 +530,37 @@ func _tick_movement(delta: float) -> void:
 	var bounds_max := ROOM_MAX if game_started else LOBBY_MAX
 	new_pos.x = clampf(new_pos.x, bounds_min.x, bounds_max.x)
 	new_pos.z = clampf(new_pos.z, bounds_min.y, bounds_max.y)
-	xr_origin.position = new_pos
+	_move_with_collisions(new_pos - xr_origin.position)
+
+
+## Déplace la capsule avec trois glissements maximum, puis applique le motion
+## réellement parcouru à XROrigin3D. La caméra reste ainsi hors des obstacles.
+func _move_with_collisions(displacement: Vector3) -> void:
+	if _movement_body == null or displacement.is_zero_approx():
+		return
+	_movement_body.position = Vector3(0.0, -xr_origin.position.y if not xr_active else 0.0, 0.0)
+	var body_start := _movement_body.global_position
+	var motion := displacement
+	for i in 3:
+		if motion.is_zero_approx():
+			break
+		var collision := _movement_body.move_and_collide(motion)
+		if collision == null:
+			break
+		motion = collision.get_remainder().slide(collision.get_normal())
+	var actual_motion := _movement_body.global_position - body_start
+	var origin_start := xr_origin.global_position
+	xr_origin.global_position = origin_start + actual_motion
+	xr_origin.global_position.y = origin_start.y
+
+	# Le clamp reste une barrière extérieure, notamment pour le jardin/lobby.
+	var bounds_min := ROOM_MIN if game_started else LOBBY_MIN
+	var bounds_max := ROOM_MAX if game_started else LOBBY_MAX
+	var clamped := xr_origin.position
+	clamped.x = clampf(clamped.x, bounds_min.x, bounds_max.x)
+	clamped.z = clampf(clamped.z, bounds_min.y, bounds_max.y)
+	xr_origin.position = clamped
+	_movement_body.position = Vector3(0.0, -xr_origin.position.y if not xr_active else 0.0, 0.0)
 
 
 func snap_turn(direction: float) -> void:

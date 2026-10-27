@@ -92,7 +92,7 @@ func _load_voices() -> void:
 
 
 func _create_players() -> void:
-	for i in 6: ## 6 emitters simultanés max (polyphonie)
+	for i in 6: ## 6 lecteurs HRTF réutilisés, jamais simultanés
 		var p := AudioStreamPlayer3D.new()
 		p.name = "WallVoice_%d" % i
 		p.bus = "Master"
@@ -144,6 +144,11 @@ func _synthesize_notification_sound() -> AudioStreamWAV:
 func tick(t: float, delta: float) -> void:
 	if not enabled or _streams.is_empty():
 		return
+	# Pendant un clip, ignorer les déclenchements et geler le cooldown.
+	# Le délai minimal ne commence donc qu'après la fin réelle de la voix.
+	if _is_voice_playing():
+		_cooldown = maxf(_cooldown, MIN_COOLDOWN)
+		return
 	# Le cooldown diminue quand la schizo monte
 	_cooldown -= delta
 	if _cooldown > 0.0:
@@ -159,7 +164,17 @@ func tick(t: float, delta: float) -> void:
 	_cooldown = cooldown_range * randf_range(0.7, 1.3)
 
 
+func _is_voice_playing() -> bool:
+	for p in _players:
+		if is_instance_valid(p) and p.playing:
+			return true
+	return false
+
+
 func _play_random_voice(t: float) -> void:
+	# L'intro et les voix aléatoires partagent le même verrou, sans file d'attente.
+	if _is_voice_playing():
+		return
 	# Trouver un player libre
 	var free_player: AudioStreamPlayer3D = null
 	for p in _players:
@@ -195,7 +210,7 @@ func _play_random_voice(t: float) -> void:
 
 ## Joue un premier murmure discret dès le démarrage pour confirmer l'audio
 func play_intro_whisper() -> void:
-	if not enabled or _streams.is_empty() or _players.is_empty():
+	if not enabled or _streams.is_empty() or _players.is_empty() or _is_voice_playing():
 		return
 	var p: AudioStreamPlayer3D = _players[0]
 	p.stream = _streams[0]

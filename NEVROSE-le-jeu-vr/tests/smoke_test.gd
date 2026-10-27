@@ -99,6 +99,57 @@ func _initialize() -> void:
 		if meuble != null:
 			_assert(is_equal_approx(meuble.scale.x, meuble.scale.y) and is_equal_approx(meuble.scale.x, meuble.scale.z), "B: échelle uniforme : %s" % chemin)
 
+	# --- B : pitch de la souris en fallback bureau ---
+	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	var mouse_motion := InputEventMouseMotion.new()
+	mouse_motion.relative = Vector2(0.0, 100.0)
+	main._update_desktop_look(mouse_motion.relative)
+	_assert(not is_zero_approx(main.xr_camera.rotation.x), "B: le pitch souris modifie la caméra")
+	mouse_motion.relative = Vector2(0.0, 100000.0)
+	main._update_desktop_look(mouse_motion.relative)
+	_assert(is_equal_approx(main.xr_camera.rotation.x, deg_to_rad(-80.0)), "B: le pitch reste clampé à -80°")
+	mouse_motion.relative = Vector2(0.0, -200000.0)
+	main._update_desktop_look(mouse_motion.relative)
+	_assert(is_equal_approx(main.xr_camera.rotation.x, deg_to_rad(80.0)), "B: le pitch reste clampé à +80°")
+	main._desktop_pitch = 0.0
+	main.xr_camera.rotation.x = 0.0
+
+	# --- B : collisions de la capsule avec les murs et les meubles ---
+	main.xr_origin.position = Vector3(6.5, 1.7, 2.0)
+	main._move_with_collisions(Vector3(0.0, 0.0, -2.0))
+	await physics_frame
+	await physics_frame
+	_assert(main.xr_origin.position.z > 1.4, "B: le mur du couloir bloque la capsule (z = %.2f)" % main.xr_origin.position.z)
+	main.xr_origin.position = Vector3(1.675, 1.7, -1.0)
+	main._move_with_collisions(Vector3(0.0, 0.0, -3.0))
+	await physics_frame
+	await physics_frame
+	_assert(main.xr_origin.position.z > -2.15, "B: le frigo bloque la capsule (z = %.2f)" % main.xr_origin.position.z)
+	main.xr_origin.position = Vector3(0.0, 1.7, 0.0)
+	main.xr_origin.rotation = Vector3.ZERO
+	main.xr_camera.rotation = Vector3.ZERO
+	main._desktop_yaw = 0.0
+	main._desktop_pitch = 0.0
+
+	# --- B : une seule voix à la fois, intro comprise ---
+	_assert(main.creepy_voices._is_voice_playing(), "B: le murmure d'introduction est actif")
+	main.creepy_voices._play_random_voice(0.5)
+	var voices_playing := 0
+	for player in main.creepy_voices._players:
+		if player.playing:
+			voices_playing += 1
+	_assert(voices_playing == 1, "B: aucune voix ne se superpose à l'intro")
+	for player in main.creepy_voices._players:
+		player.stop()
+	main.creepy_voices._play_random_voice(0.5)
+	voices_playing = 0
+	for player in main.creepy_voices._players:
+		if player.playing:
+			voices_playing += 1
+	_assert(voices_playing == 1, "B: une voix aléatoire démarre après l'arrêt des players")
+	for player in main.creepy_voices._players:
+		player.stop()
+
 	# --- C : montée de la schizo ---
 	var s0: float = main.sanity
 	for i in 30:

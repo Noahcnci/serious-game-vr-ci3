@@ -794,48 +794,53 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 2.68, -0.6)
 [node name="SDB" type="Node3D" parent="ExtensionEst" unique_id=2062315239]
 
 [node name="MurSDBN" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1962506359]
-transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 1.35, -0.6)
+transform = Transform3D(0.4651163, 0, 0, 0, 1, 0, 0, 0, 1, 10.3, 1.35, -0.6)
 material_override = SubResource("mat_mur")
 mesh = SubResource("mesh_walln")
 
 [node name="MurSDBE" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1382596768]
-transform = Transform3D(-1.0165433e-08, 0, 1, 0, 1, 0, -0.232558, 0, -4.371139e-08, 10.3, 1.35, 0.4)
+transform = Transform3D(-1.0165433e-08, 0, 1, 0, 1, 0, -0.232558, 0, -4.371139e-08, 12.3, 1.35, 0.4)
 material_override = SubResource("mat_mur")
 mesh = SubResource("mesh_walln")
 
 [node name="SolSDB" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=1732505313]
-transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, -0.05, 0.4)
+transform = Transform3D(0.4651163, 0, 0, 0, 1, 0, 0, 0, 0.30303, 10.3, -0.05, 0.4)
 material_override = SubResource("mat_sol")
 mesh = SubResource("mesh_floor")
 
 [node name="PlafondSDB" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=722534785]
-transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 0.30303, 9.3, 2.75, 0.4)
+transform = Transform3D(0.4651163, 0, 0, 0, 1, 0, 0, 0, 0.30303, 10.3, 2.75, 0.4)
 material_override = SubResource("mat_plafond")
 mesh = SubResource("mesh_ceil")
 
 [node name="Baignoire" parent="ExtensionEst/SDB" unique_id=776093777 instance=ExtResource("mob_bathtub")]
-transform = Transform3D(1.45, 0, 0, 0, 1.45, 0, 0, 0, 1.45, 8.37725, 4.5e-16, 0.441)
+transform = Transform3D(1.45, 0, 0, 0, 1.45, 0, 0, 0, 1.45, 10.48725, 0, 0.441)
 
 [node name="WC" parent="ExtensionEst/SDB" unique_id=660467442 instance=ExtResource("mob_toilet")]
 transform = Transform3D(-1.7, 0, -2.5669289e-07, 0, 1.7, 0, 2.5669289e-07, 0, -1.7, 8.915668, 0, 1.3056002)
 
 [node name="Lavabo" parent="ExtensionEst/SDB" unique_id=1030075106 instance=ExtResource("mob_sink")]
-transform = Transform3D(-1.4, 0, -2.1139412e-07, 0, 1.4, 0, 2.1139412e-07, 0, -1.4, 10.051, -0.079531215, 0.48000005)
+transform = Transform3D(-1.4, 0, -2.1139412e-07, 0, 1.4, 0, 2.1139412e-07, 0, -1.4, 10.901, -0.0795312, 0.43)
 
 [node name="Miroir" parent="ExtensionEst/SDB" unique_id=1730042219 instance=ExtResource("mob_mirror")]
-transform = Transform3D(-1.6, 0, -2.4159328e-07, 0, 1.6, 0, 2.4159328e-07, 0, -1.6, 9.991073, 0.86200005, 1.29744)
+transform = Transform3D(-1.6, 0, -2.4159328e-07, 0, 1.6, 0, 2.4159328e-07, 0, -1.6, 10.84107, 0.862, 1.29744)
 
 [node name="TapisSDB" parent="ExtensionEst/SDB" unique_id=675742120 instance=ExtResource("mob_rugdoormat")]
-transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 9.228025, 0.01, 0.82775676)
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 9.228025, 0.01, 0.727757)
 
 [node name="SpotSDB" type="SpotLight3D" parent="ExtensionEst/SDB" unique_id=1646101972]
-transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 9.3, 2.62, 0.4)
+transform = Transform3D(1, 0, 0, 0, -4.371139e-08, 1, 0, -1, -4.371139e-08, 10.3, 2.62, 0.4)
 light_color = Color(0.93, 0.96, 1, 1)
 light_energy = 3.0
 spot_angle = 80.0
 
 [node name="PlafonnierSDB" parent="ExtensionEst/SDB" unique_id=1241662898 instance=ExtResource("mob_plafonnier")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.3, 2.68, 0.4)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.3, 2.68, 0.4)
+
+[node name="MurSDBS" type="MeshInstance3D" parent="ExtensionEst/SDB" unique_id=950909638]
+transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 1, 11.3, 1.35, 1.4)
+material_override = SubResource("mat_mur")
+mesh = SubResource("mesh_walln")
 
 [node name="Dressing" type="Node3D" parent="ExtensionEst" unique_id=433758910]
 

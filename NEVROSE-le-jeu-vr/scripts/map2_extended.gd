@@ -52,7 +52,7 @@ var _mat_porte: StandardMaterial3D
 const COUNTER_Y := 0.48
 
 # Dimensions de la map étendue (pour le clamp joueur dans main.gd)
-const EXT_W := 14.6  # -4.075 → 10.275
+const EXT_W := 16.4  # -4.075 → 12.300 (SDB agrandie)
 const EXT_D := 12.6  # -3 → +6
 
 # Origines des nouvelles pièces (centre de chaque pièce)
@@ -77,6 +77,7 @@ func _init() -> void:
 func build() -> void:
 	_make_materials()
 	_instance_shell()
+	_build_collision_geometry()
 	# Nœuds de compatibilité pour le smoke test (décor déjà dans le .tscn)
 	var kitchen := Node3D.new()
 	kitchen.name = "Kitchen"
@@ -159,6 +160,61 @@ func _place_quaternius(parent: Node, fbx_name: String, pos: Vector3, rot_y := 0.
 # ---------------------------------------------------------------------------
 # EXTENSION : couloir + 4 nouvelles pièces
 # ---------------------------------------------------------------------------
+## Collisions invisibles dérivées de la scène éditée, sans dupliquer de visuel.
+func _build_collision_geometry() -> void:
+	for path in ["Shell/ExtensionEst", "Shell/Jardin"]:
+		var root := get_node_or_null(path)
+		if root != null:
+			_add_wall_collisions(root)
+
+	var furniture := [
+		"Shell/table", "Shell/chair", "Shell/chair2", "Shell/chair3", "Shell/chair4",
+		"Shell/kitchenFridge", "Shell/sideTableDrawers", "Shell/loungeSofa",
+		"Shell/kitchenStove", "Shell/kitchenCabinetDrawer",
+		"Shell/kitchenCabinetCornerInner", "Shell/kitchenSink", "Shell/trashcan",
+		"Shell/ExtensionEst/Couloir/PorteManteau",
+		"Shell/ExtensionEst/Garage/LaveLinge", "Shell/ExtensionEst/Garage/Etabli",
+		"Shell/ExtensionEst/Garage/Tabouret", "Shell/ExtensionEst/Garage/EtagereGarage",
+		"Shell/ExtensionEst/Garage/Carton1", "Shell/ExtensionEst/Garage/Carton2",
+		"Shell/ExtensionEst/Garage/Carton3", "Shell/ExtensionEst/Garage/Poubelle",
+		"Shell/ExtensionEst/Chambre/LitDouble", "Shell/ExtensionEst/Chambre/TableNuit",
+		"Shell/ExtensionEst/Chambre/Bureau", "Shell/ExtensionEst/Chambre/ChaiseBureau",
+		"Shell/ExtensionEst/Chambre/EtagereChambre", "Shell/ExtensionEst/SDB/Baignoire",
+		"Shell/ExtensionEst/SDB/WC", "Shell/ExtensionEst/SDB/Lavabo",
+		"Shell/ExtensionEst/Dressing/Armoire1", "Shell/ExtensionEst/Dressing/Armoire2",
+		"Shell/ExtensionEst/Dressing/PorteManteauDressing",
+		"Shell/ExtensionEst/Dressing/CartonDressing",
+	]
+	for path in furniture:
+		var node := get_node_or_null(path) as Node3D
+		if node != null:
+			_add_world_collision(node)
+
+
+func _add_wall_collisions(node: Node) -> void:
+	if node is MeshInstance3D:
+		var label := String(node.name).to_lower()
+		if label.begins_with("mur") or label.begins_with("linteau") or label.begins_with("cloture"):
+			_add_world_collision(node as Node3D)
+	for child in node.get_children():
+		_add_wall_collisions(child)
+
+
+func _add_world_collision(node: Node3D) -> void:
+	var bounds := _world_bounds(node)
+	var body := StaticBody3D.new()
+	body.name = "PlayerCollision"
+	body.collision_layer = 1
+	body.collision_mask = 1
+	body.position = bounds.get_center()
+	add_child(body)
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = bounds.size
+	collision.shape = shape
+	body.add_child(collision)
+
+
 ## Enveloppe monde d'un meuble édité. Sert à aligner le gameplay sur la scène,
 ## même si ses assets sont déplacés ou redimensionnés plus tard dans l'éditeur.
 func _world_bounds(node: Node3D) -> AABB:
