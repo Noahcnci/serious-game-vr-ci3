@@ -873,9 +873,12 @@ func _trigger_game_over() -> void:
 		"Tu n'as fait que DÉCALER. Et ça, ça ne suffit pas.\n\n" +
 		"Gâchette / clic : recommencer (et perdre à nouveau)"
 	)
-	gameover_label.visible = true
+	# Un seul affichage : HUD 2D en bureau, Label3D dans le casque.
+	gameover_label.visible = not xr_active
 	if vr_gameover_label:
-		vr_gameover_label.visible = true
+		vr_gameover_label.visible = xr_active
+	chat_label.visible = false
+	center_dot.visible = false
 	vignette_rect.material.set_shader_parameter(&"intensity", 1.0)
 
 
@@ -887,6 +890,8 @@ func _restart() -> void:
 	gameover_label.visible = false
 	if vr_gameover_label:
 		vr_gameover_label.visible = false
+	chat_label.visible = true
+	center_dot.visible = true
 	_consume_pill()
 	_consume_key()
 	apartment.reset_containers()
