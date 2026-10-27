@@ -4,7 +4,7 @@ extends SceneTree
 ##   Godot_v4.7.2-stable_win64_console.exe --headless --path . --script res://tests/smoke_test.gd
 ##
 ## Scénarios :
-##   A — la scène principale s'instancie, les nœuds XR existent
+##   A — la scène principale s'instancie, les nœuds XR existent, le lobby précède la partie
 ##   B — l'appartement procédural est construit (coquille + meubles + conteneurs)
 ##   C — la jauge de schizo monte avec le temps (GDD §5.2)
 ##   D — la pilule spawne ; la prendre soulage la schizo (GDD §5.1)
@@ -40,6 +40,32 @@ func _initialize() -> void:
 	_assert(main.get_node_or_null("XROrigin3D/LeftHand") != null, "A: manette gauche présente")
 	_assert(main.get_node_or_null("XROrigin3D/RightHand") != null, "A: manette droite présente")
 	_assert(main.is_xr_active() == false, "A: headless = fallback bureau (OpenXR inactif)")
+
+	# --- A : lobby (avant le départ) ---
+	var lobby: LobbyWorld = main.lobby
+	_assert(lobby != null, "A: lobby présent au boot")
+	_assert(not main.game_started, "A: partie non lancée au boot")
+	_assert(main.apartment == null, "A: appartement absent avant le départ")
+	_assert(main.phone == null, "A: téléphone absent avant le départ")
+	var sanity_lobby: float = main.sanity
+	for i in 10:
+		await physics_frame
+	_assert(main.sanity == sanity_lobby, "A: folie figée dans le lobby")
+	lobby.computer.on_unpointed()
+	_assert(not lobby.computer.play_prompt.visible, "A: prompt masqué quand l'ordinateur n'est pas visé")
+	lobby.computer.on_pointed()
+	_assert(lobby.computer.play_prompt.visible, "A: prompt visible au survol de l'ordinateur")
+
+	# Le vrai dispatch passe par l'objet pointé puis par interact().
+	main._pointed = main.lobby.computer
+	main.interact()
+	await process_frame
+	await process_frame
+	_assert(main.game_started, "A: l'ordinateur lance la partie")
+	_assert(main.lobby == null, "A: référence du lobby effacée après le départ")
+	_assert(not is_instance_valid(lobby), "A: lobby libéré après le départ")
+
+	# --- A : smartphone (créé après le départ) ---
 	_assert(main.phone != null, "A: smartphone Messenger présent")
 	_assert(not main.phone.is_in_hand, "A: téléphone initialement dans la poche")
 	main.phone.toggle_pocket()

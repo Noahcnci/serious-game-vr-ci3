@@ -26,6 +26,11 @@ const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 const ROOM_MIN := Vector2(-3.7, -2.7)
 const ROOM_MAX := Vector2(10.0, 5.7)
 
+# Lobby cosy : mêmes contrôles, mais folie et gameplay en pause.
+const LOBBY_SCENE := preload("res://scenes/lobby.tscn")
+const LOBBY_MIN := Vector2(-2.25, -2.15)
+const LOBBY_MAX := Vector2(2.25, 2.15)
+
 # Seuils de folie (GDD §5.2) : la folie se lit sur le monde, pas sur une barre.
 const FOLIE_LEGERE := 35.0 # vignette douce
 const FOLIE_FORTE := 65.0 # vignette marquée + murs qui respirent
@@ -46,7 +51,6 @@ var _right_hand_mesh: Node3D = null
 var _body: VRBody = null
 var _held_key: KeyObject = null ## Clé actuellement dans la main (GDD §5.6)
 var phone: Phone = null ## Smartphone avec Messenger
-var vr_intro_panel: Node3D = null ## Panneau d'introduction et tutoriel 3D
 var vr_gameover_label: Label3D = null ## Game over 3D visible dans le casque OpenXR
 const HAND_SCENE_R := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/right_hand_low.tscn")
 const HAND_SCENE_L := preload("res://addons/godot-xr-tools/hands/scenes/lowpoly/left_hand_low.tscn")
@@ -71,7 +75,10 @@ var _chat_accum := 0.0
 var _creepy_idx := 0
 var _chat_msg_count := 0 # total de lignes creepy — 1 message Messenger sur 3
 
-var apartment: MapBase
+var apartment: MapBase = null
+var lobby: LobbyWorld = null
+var game_started := false
+var _lobby_laser: MeshInstance3D = null
 var vignette_rect: ColorRect
 var chat_label: Label
 var center_dot: ColorRect
@@ -115,21 +122,69 @@ const CHAT_CRITIQUE := [
 
 func _ready() -> void:
 	add_to_group("main")
-	_log("MAIN", "fragment 1 : _ready()")
+	_log("MAIN", "lobby : _ready()")
 	right_hand.button_pressed.connect(_on_right_button_pressed)
 	left_hand.button_pressed.connect(_on_left_button_pressed)
 	_init_openxr()
-	_build_world()
 	_build_player_body()
 	_build_hud()
-	_build_phone()
+	_build_lobby()
 	_register_debug_inputs()
 
 
+func _build_lobby() -> void:
+	lobby = LOBBY_SCENE.instantiate() as LobbyWorld
+	lobby.name = "Lobby"
+	add_child(lobby)
+	lobby.play_requested.connect(start_game)
+	xr_origin.position = Vector3(1.0, 1.7 if not xr_active else 0.0, 1.35)
+	xr_origin.rotation = Vector3.ZERO
+	_desktop_yaw = 0.0
+	chat_label.text = ""
+
+	if xr_active:
+		# Un fin rayon rend la visée par la main immédiatement compréhensible.
+		_lobby_laser = MeshInstance3D.new()
+		_lobby_laser.name = "LobbyPointer"
+		var beam := BoxMesh.new()
+		beam.size = Vector3(0.006, 0.006, RAY_LENGTH)
+		_lobby_laser.mesh = beam
+		var laser_mat := StandardMaterial3D.new()
+		laser_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
+		laser_mat.albedo_color = Color(0.3, 1.0, 0.9)
+		_lobby_laser.material_override = laser_mat
+		_lobby_laser.position = Vector3(0.0, 0.0, -RAY_LENGTH * 0.5)
+		right_hand.add_child(_lobby_laser)
+	_log("WORLD", "lobby cosy prêt — folie en pause")
+
+
+## Point de départ unique de la partie, appelé par l'ordinateur du lobby.
+func start_game() -> void:
+	if game_started:
+		return
+	game_started = true
+	if is_instance_valid(_pointed) and _pointed.has_method(&"on_unpointed"):
+		_pointed.on_unpointed()
+	_pointed = null
+	if is_instance_valid(_lobby_laser):
+		_lobby_laser.queue_free()
+	_lobby_laser = null
+	if is_instance_valid(lobby):
+		lobby.queue_free()
+	lobby = null
+
+	# L'appartement reprend exactement son initialisation d'origine.
+	xr_origin.position = Vector3(0.0, 1.7 if not xr_active else 0.0, 0.0)
+	xr_origin.rotation = Vector3.ZERO
+	_desktop_yaw = 0.0
+	_build_world()
+	_build_phone()
 	_spawn_dose()
 	_update_chat("Tu as oublié ta dose. Elle est dans la pièce. Trouve-la.")
 	if creepy_voices:
 		creepy_voices.play_intro_whisper()
+	_pulse_haptics()
+	_log("GAME", "transition lobby → appartement")
 
 
 # ---------------------------------------------------------------------------
@@ -231,8 +286,10 @@ func _build_world() -> void:
 func _build_player_body() -> void:
 	_right_hand_mesh = HAND_SCENE_R.instantiate()
 	right_hand.add_child(_right_hand_mesh)
+	_right_hand_mesh.visible = xr_active
 	_left_hand_mesh = HAND_SCENE_L.instantiate()
 	left_hand.add_child(_left_hand_mesh)
+	_left_hand_mesh.visible = xr_active
 	_log("WORLD", "mains animées (godot-xr-tools) attachées : grip=pointer, grip+trigger=saisir")
 	# Corps FPV : uniquement en VR. En fallback bureau la caméra est à 1,7 m
 	# fixe → on se retrouverait à l'intérieur du buste (torse à y=1,25).
@@ -295,32 +352,6 @@ func _build_hud() -> void:
 	gameover_label.visible = false
 	hud.add_child(gameover_label)
 
-	# Panneau 3D d'introduction et commandes VR (visible dans le casque)
-	vr_intro_panel = Node3D.new()
-	vr_intro_panel.name = "VRIntroPanel"
-	xr_camera.add_child(vr_intro_panel)
-	vr_intro_panel.position = Vector3(0.0, -0.05, -1.2)
-
-	var panel_quad := QuadMesh.new()
-	panel_quad.size = Vector2(0.95, 0.6)
-	var panel_mesh := MeshInstance3D.new()
-	panel_mesh.mesh = panel_quad
-	var panel_mat := StandardMaterial3D.new()
-	panel_mat.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
-	panel_mat.albedo_color = Color(0.04, 0.06, 0.1, 0.92)
-	panel_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	panel_mesh.material_override = panel_mat
-	vr_intro_panel.add_child(panel_mesh)
-
-	var intro_label := Label3D.new()
-	intro_label.text = "[ NÉVROSE ]\n\nTu as oublié ta dose de médicaments.\nFouille les meubles pour retrouver ta pilule\navant que la schizophrénie ne t'assimile.\n\n• Stick gauche : Se déplacer\n• Stick droit : Tourner (45°)\n• Gâchette droite : Viser et ouvrir\n• Bouton Y (manette gauche) : Sortir le téléphone Messenger\n\n(Appuie sur la gâchette pour commencer)"
-	intro_label.font_size = 20
-	intro_label.pixel_size = 0.0016
-	intro_label.modulate = Color(1.0, 1.0, 1.0)
-	intro_label.outline_size = 4
-	intro_label.outline_modulate = Color(0.0, 0.0, 0.0, 0.9)
-	intro_label.position = Vector3(0.0, 0.0, 0.005)
-	vr_intro_panel.add_child(intro_label)
 
 	# Game Over 3D dans le casque
 	vr_gameover_label = Label3D.new()
@@ -398,6 +429,11 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if game_over:
 		return
+	if not game_started:
+		# Le lobby conserve déplacement et visée, mais aucune pression de jeu.
+		_tick_movement(delta)
+		_tick_interaction_ray()
+		return
 	_tick_sanity(delta)
 	_tick_movement(delta)
 	_tick_interaction_ray()
@@ -456,8 +492,10 @@ func _tick_movement(delta: float) -> void:
 
 	var displacement := (forward * -move.y + right * move.x) * MOVE_SPEED * delta
 	var new_pos: Vector3 = xr_origin.position + displacement
-	new_pos.x = clampf(new_pos.x, ROOM_MIN.x, ROOM_MAX.x)
-	new_pos.z = clampf(new_pos.z, ROOM_MIN.y, ROOM_MAX.y)
+	var bounds_min := ROOM_MIN if game_started else LOBBY_MIN
+	var bounds_max := ROOM_MAX if game_started else LOBBY_MAX
+	new_pos.x = clampf(new_pos.x, bounds_min.x, bounds_max.x)
+	new_pos.z = clampf(new_pos.z, bounds_min.y, bounds_max.y)
 	xr_origin.position = new_pos
 
 
@@ -510,8 +548,6 @@ func _tick_interaction_ray() -> void:
 
 
 func interact() -> void:
-	if vr_intro_panel and vr_intro_panel.visible:
-		vr_intro_panel.visible = false
 	if game_over:
 		_restart()
 		return
@@ -542,6 +578,14 @@ func interact() -> void:
 # Retourne l'interactable le plus proche d'une main (gâchette), dans un rayon
 # PROXIMITY_RADIUS. Utilisé quand le rayon ne vise rien mais qu'on est au contact.
 func _nearest_interactable() -> Node:
+	if not game_started:
+		if lobby == null:
+			return null
+		for hand in [right_hand, left_hand]:
+			var origin: Vector3 = hand.global_transform.origin
+			if origin.distance_to(lobby.computer.global_transform.origin) < PROXIMITY_RADIUS:
+				return lobby.computer
+		return null
 	var best: Node = null
 	var best_d := PROXIMITY_RADIUS
 	for hand in [right_hand, left_hand]:
