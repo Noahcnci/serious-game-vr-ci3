@@ -217,6 +217,111 @@ func _initialize() -> void:
 	_assert(garage_drawer.position.is_equal_approx(garage_drawer._closed_pos), "E+: close_now restaure la position fermée")
 	_assert(is_equal_approx(garage_drawer.rotation.y, garage_drawer._closed_rot_y), "E+: close_now restaure la rotation fermée")
 
+	# Le placard à forcer doit s'ouvrir après trois interactions, le tiroir
+	# de cuisine doit reconnaître sa propre clé.
+	for i in 3:
+		closet_door.interact()
+	await create_timer(0.45).timeout
+	_assert(closet_door.is_open and not closet_door.is_locked, "E+: le placard de cuisine s'ouvre après trois forcings")
+	closet_door.close_now()
+	var kitchen_drawer := apt.get_node("KitchenDrawerKey") as InteractiveContainer
+	kitchen_drawer.interact(kitchen_drawer.required_key)
+	await create_timer(0.45).timeout
+	_assert(kitchen_drawer.is_open and not kitchen_drawer.is_locked, "E+: le tiroir de cuisine s'ouvre avec sa clé")
+	kitchen_drawer.close_now()
+
+	# --- E+ : pilule révélée dans GarageDrawer, prioritaire sur sa façade ---
+	# La dose de la section D réapparaît après 2 s. On attend sa fin avant de
+	# remplacer temporairement le contenu du tiroir pour éviter tout écrasement.
+	await create_timer(2.1).timeout
+	var dose_initiale_tiroir: Node3D = garage_drawer.dose
+	var dose_test := Dose.new()
+	dose_test.name = "DoseTestConteneur"
+	garage_drawer.add_child(dose_test)
+	dose_test.position = garage_drawer.content_offset
+	garage_drawer.dose = dose_test
+	dose_test.visible = true
+	dose_test.monitoring = true
+	dose_test.monitorable = true
+	if not garage_drawer.is_open:
+		garage_drawer.interact()
+	await create_timer(0.45).timeout
+
+	# Position simple : un mètre devant la façade, sans autre meuble sur le rayon.
+	# La caméra vise le centre de la pilule, comme en fallback bureau.
+	var transform_origine_avant: Transform3D = main.xr_origin.transform
+	var transform_camera_avant: Transform3D = main.xr_camera.transform
+	var yaw_avant_pilule: float = main._desktop_yaw
+	var pitch_avant_pilule: float = main._desktop_pitch
+	var direction_face := garage_drawer.global_transform.basis.z.normalized()
+	main.xr_origin.global_position = dose_test.global_position + direction_face
+	main.xr_origin.rotation = Vector3.ZERO
+	main.xr_camera.transform = Transform3D.IDENTITY
+	main._desktop_yaw = 0.0
+	main._desktop_pitch = 0.0
+	main.xr_camera.look_at(dose_test.global_position, Vector3.UP)
+	main._tick_interaction_ray()
+	_assert(main._pointed == garage_drawer.dose and main._pointed == dose_test, "E+: le rayon vise la pilule révélée plutôt que GarageDrawer")
+	main.interact()
+	_assert(main._held_pill == garage_drawer.dose and main._held_pill == dose_test, "E+: interact ramasse la pilule contenue dans GarageDrawer")
+
+	# Ne pas consommer la dose : le test ne doit changer ni le compteur ni la run.
+	main._pointed = null
+	if main._held_pill == dose_test:
+		main._held_pill = null
+	if is_instance_valid(dose_test):
+		dose_test.queue_free()
+	garage_drawer.dose = null
+	garage_drawer.close_now()
+	if is_instance_valid(dose_initiale_tiroir):
+		garage_drawer.dose = dose_initiale_tiroir
+	main.xr_origin.transform = transform_origine_avant
+	main.xr_camera.transform = transform_camera_avant
+	main._desktop_yaw = yaw_avant_pilule
+	main._desktop_pitch = pitch_avant_pilule
+	await process_frame
+
+	# --- E+ : ouverture et fermeture de la porte d'entrée ---
+	var entrance_door: EntranceDoor = null
+	if apt.has_node("EntranceDoor"):
+		entrance_door = apt.get_node("EntranceDoor") as EntranceDoor
+	elif apt.has_node("Shell/EntranceDoor"):
+		# La coquille instanciée par Map2Extended ajoute le niveau Shell.
+		entrance_door = apt.get_node("Shell/EntranceDoor") as EntranceDoor
+	_assert(entrance_door != null, "E+: porte d'entrée présente")
+	if entrance_door != null:
+		_assert(entrance_door.get_node_or_null("area") is Area3D, "E+: la porte d'entrée possède son enfant area")
+		var rotation_fermee: float = entrance_door.rotation.y
+		entrance_door.interact()
+		await create_timer(0.45).timeout
+		_assert(not is_equal_approx(entrance_door.rotation.y, rotation_fermee), "E+: la porte d'entrée pivote à l'ouverture")
+		entrance_door.interact()
+		await create_timer(0.45).timeout
+		_assert(is_equal_approx(entrance_door.rotation.y, rotation_fermee), "E+: la porte d'entrée retrouve sa rotation fermée")
+		# Une troisième ouverture doit laisser la capsule passer dans le couloir.
+		main.xr_origin.position = Vector3(3.4, 1.7, 2.0)
+		entrance_door.interact()
+		await create_timer(0.45).timeout
+		main._move_with_collisions(Vector3(2.0, 0.0, 0.0))
+		await physics_frame
+		await physics_frame
+		_assert(main.xr_origin.position.x > 4.3, "E+: la porte ouverte laisse passer le joueur (x = %.2f)" % main.xr_origin.position.x)
+		entrance_door.interact()
+
+	# --- E+ : carillon spatial de la pilule, limité à cinq mètres ---
+	var dose_audio := apt.get_dose()
+	_assert(is_instance_valid(dose_audio), "E+: une dose est disponible pour le test audio")
+	if is_instance_valid(dose_audio):
+		var audio_dose: AudioStreamPlayer3D = null
+		for enfant in dose_audio.get_children():
+			if enfant is AudioStreamPlayer3D:
+				audio_dose = enfant as AudioStreamPlayer3D
+				break
+		_assert(audio_dose != null, "E+: la pilule possède un AudioStreamPlayer3D")
+		if audio_dose != null:
+			_assert(audio_dose.stream != null, "E+: le carillon de la pilule possède un stream")
+			_assert(audio_dose.max_distance > 0.0 and audio_dose.max_distance <= 5.0, "E+: la portée du carillon ne dépasse pas 5 m (%.2f)" % audio_dose.max_distance)
+
 	# --- E+ : cooldown des notifications du téléphone ---
 	var derniere_alerte_ms: int = main.phone._last_alert_notification_ms
 	main.phone.receive_message("Test routine", false)

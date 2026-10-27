@@ -14,6 +14,8 @@ const KEY_USE_RADIUS := 1.2 ## Distance max clé→conteneur pour déverrouiller
 
 signal lock_broken(container: Node3D, noise: float) ## Émis quand force-ouverte
 signal unlocked_by_key(container: Node3D) ## Émis quand clé utilisée
+signal force_progress(container: Node3D, hits: int, required: int)
+signal key_required(container: Node3D)
 
 var mode: Mode = Mode.SLIDE
 var slide_axis := Vector3.BACK
@@ -126,11 +128,13 @@ func _try_unlock(holding_key: Node3D) -> void:
 	# Pas de clé → force (si forceable)
 	if lock_type == LockType.FORCEABLE:
 		force_hits += 1
+		force_progress.emit(self, force_hits, FORCE_HITS_TO_BREAK)
 		if force_hits >= FORCE_HITS_TO_BREAK:
 			_unlock()
 			lock_broken.emit(self, FORCE_NOISE_LEVEL)
 		return
 	# KEY lock sans clé → feedback visuel (flash rouge)
+	key_required.emit(self)
 	_flash_locked()
 
 

@@ -37,7 +37,8 @@ var _pocket_parent: Node3D = null
 # Offsets de positionnement
 var _pocket_local_pos := Vector3(-0.25, 0.8, 0.0)
 var _pocket_local_rot := Vector3(0.0, 0.0, 0.0)
-var _hand_local_pos := Vector3(0.02, 0.04, -0.06)
+# Écran avancé à 12 cm de la manette pour éviter une lecture trop près du visage.
+var _hand_local_pos := Vector3(0.02, 0.04, -0.12)
 var _hand_local_rot := Vector3(-35.0, 15.0, -10.0)
 var _desktop_cam_pos := Vector3(-0.16, -0.12, -0.32)
 var _desktop_cam_rot := Vector3(-12.0, 12.0, -4.0)
@@ -63,7 +64,8 @@ var _clock_label: Label = null
 var _messages_container: VBoxContainer = null
 var _input_label: Label = null
 
-# Historique des messages (max 3 affichés)
+# Historique : 3 messages conservés, mais seulement les 2 derniers affichés.
+const MAX_VISIBLE_MESSAGES := 2
 var _messages_data: Array[Dictionary] = []
 const ALERT_NOTIFICATION_COOLDOWN_MS := 20000
 var _last_alert_notification_ms := -1000000
@@ -495,20 +497,22 @@ func _refresh_messages_ui() -> void:
 	for child in _messages_container.get_children():
 		child.queue_free()
 
-	for msg in _messages_data:
+	var first_visible := maxi(_messages_data.size() - MAX_VISIBLE_MESSAGES, 0)
+	for i in range(first_visible, _messages_data.size()):
+		var msg: Dictionary = _messages_data[i]
 		var item_vbox := VBoxContainer.new()
 		item_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 		# Horodatage / En-tête de message
 		var meta_lbl := Label.new()
 		meta_lbl.text = "Subconscient • " + str(msg.get("time", "Maintenant"))
-		meta_lbl.add_theme_font_size_override("font_size", 10)
+		meta_lbl.add_theme_font_size_override("font_size", 14)
 		meta_lbl.add_theme_color_override("font_color", Color(0.6, 0.62, 0.66))
 		item_vbox.add_child(meta_lbl)
 
 		# Bulle de discussion Messenger
 		var bubble_panel := PanelContainer.new()
-		bubble_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		bubble_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var b_style := StyleBoxFlat.new()
 		var is_alt: bool = bool(msg.get("alert", false))
 		b_style.bg_color = COLOR_BUBBLE_ALERT if is_alt else COLOR_BUBBLE_IN
@@ -516,17 +520,18 @@ func _refresh_messages_ui() -> void:
 		b_style.corner_radius_top_right = 14
 		b_style.corner_radius_bottom_right = 14
 		b_style.corner_radius_bottom_left = 4
-		b_style.content_margin_left = 12
-		b_style.content_margin_top = 8
-		b_style.content_margin_right = 12
-		b_style.content_margin_bottom = 8
+		b_style.content_margin_left = 14
+		b_style.content_margin_top = 10
+		b_style.content_margin_right = 14
+		b_style.content_margin_bottom = 10
 		bubble_panel.add_theme_stylebox_override("panel", b_style)
 
 		var msg_lbl := Label.new()
 		msg_lbl.text = str(msg.get("text", ""))
 		msg_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		msg_lbl.custom_minimum_size = Vector2(240, 0)
-		msg_lbl.add_theme_font_size_override("font_size", 13)
+		msg_lbl.custom_minimum_size = Vector2.ZERO
+		msg_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		msg_lbl.add_theme_font_size_override("font_size", 18)
 		msg_lbl.add_theme_color_override("font_color", Color.WHITE)
 		bubble_panel.add_child(msg_lbl)
 

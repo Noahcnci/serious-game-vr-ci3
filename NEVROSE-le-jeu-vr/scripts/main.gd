@@ -22,8 +22,8 @@ const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 
 # Limites de la pièce pour le clamp de déplacement (mur = mur, zéro collision coûteuse)
 # Map 2 étendue : salon+cuisine+couloir+garage+chambre+sdb+dressing
-# x ∈ [-3.7, 12.0], z ∈ [-2.7, 6.3]
-const ROOM_MIN := Vector2(-3.7, -2.7)
+# x ∈ [-3.7, 12.0], z ∈ [-3.3, 6.3]
+const ROOM_MIN := Vector2(-3.7, -3.3)
 const ROOM_MAX := Vector2(12.0, 6.3)
 
 # Lobby cosy : mêmes contrôles, mais folie et gameplay en pause.
@@ -277,6 +277,8 @@ func _build_world() -> void:
 		if c.lock_type != InteractiveContainer.LockType.NONE:
 			c.lock_broken.connect(_on_container_lock_broken)
 			c.unlocked_by_key.connect(_on_container_unlocked_by_key)
+			c.force_progress.connect(_on_container_force_progress)
+			c.key_required.connect(_on_container_key_required)
 
 	# GDD §5.2/§7 : voix dans les murs (HRTF binaural)
 	creepy_voices = preload("res://scripts/creepy_voices.gd").new()
@@ -597,10 +599,24 @@ func _tick_interaction_ray() -> void:
 	# Les conteneurs ET la pilule exposent on_pointed() ; tout est Area3D.
 	if hit and hit.collider is Area3D:
 		var owner_node: Node = (hit.collider as Area3D).get_parent()
-		if owner_node and owner_node.has_method(&"on_pointed"):
+		if hit.collider is Dose:
+			new_pointed = hit.collider
+		elif owner_node and owner_node.has_method(&"on_pointed"):
 			new_pointed = owner_node
 		elif (hit.collider as Object).has_method(&"on_pointed"):
 			new_pointed = hit.collider
+
+	# Une dose révélée dans un conteneur doit être cliquable avant sa façade.
+	if new_pointed is InteractiveContainer and new_pointed.is_open:
+		var container := new_pointed as InteractiveContainer
+		if is_instance_valid(container.dose) and container.dose.visible:
+			var dose_query := PhysicsRayQueryParameters3D.create(from, from + dir * RAY_LENGTH)
+			dose_query.collide_with_bodies = false
+			dose_query.collide_with_areas = true
+			dose_query.exclude = [container.area.get_rid()]
+			var dose_hit := get_world_3d().direct_space_state.intersect_ray(dose_query)
+			if dose_hit and dose_hit.collider == container.dose:
+				new_pointed = container.dose
 
 	if new_pointed != _pointed:
 		if is_instance_valid(_pointed) and _pointed.has_method(&"on_unpointed"):
@@ -769,6 +785,15 @@ func _on_container_unlocked_by_key(container: Node3D) -> void:
 	_log("GAME", "déverrouillé par clé : %s" % container.name)
 	_update_chat("La clé tourne dans le silence. Il n'a rien entendu.")
 	_pulse_haptics(0.30, 0.10)
+
+
+func _on_container_force_progress(_container: Node3D, hits: int, required: int) -> void:
+	_pulse_haptics(0.2, 0.08)
+	_update_chat("Forcer le meuble : %d/%d" % [hits, required])
+
+
+func _on_container_key_required(_container: Node3D) -> void:
+	_update_chat("Il te faut la bonne clé pour ce meuble.")
 
 
 # Round 3 : un mimic mobile a atteint le joueur (présence oppressante).

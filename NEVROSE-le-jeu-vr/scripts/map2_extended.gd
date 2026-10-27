@@ -53,7 +53,7 @@ const COUNTER_Y := 0.48
 
 # Dimensions de la map étendue (pour le clamp joueur dans main.gd)
 const EXT_W := 16.4  # -4.075 → 12.300 (SDB agrandie)
-const EXT_D := 12.6  # -3 → +6
+const EXT_D := 13.6  # -3.6 → +6.6
 
 # Origines des nouvelles pièces (centre de chaque pièce)
 const CORRIDOR_X := 4.675   # x = 4.075 → 5.275
@@ -177,6 +177,7 @@ func _build_collision_geometry() -> void:
 		"Shell/ExtensionEst/Garage/Tabouret", "Shell/ExtensionEst/Garage/EtagereGarage",
 		"Shell/ExtensionEst/Garage/Carton1", "Shell/ExtensionEst/Garage/Carton2",
 		"Shell/ExtensionEst/Garage/Carton3", "Shell/ExtensionEst/Garage/Poubelle",
+		"Shell/ExtensionEst/Garage/TableStockage", "Shell/ExtensionEst/Garage/CartonStockage",
 		"Shell/ExtensionEst/Chambre/LitDouble", "Shell/ExtensionEst/Chambre/TableNuit",
 		"Shell/ExtensionEst/Chambre/Bureau", "Shell/ExtensionEst/Chambre/ChaiseBureau",
 		"Shell/ExtensionEst/Chambre/EtagereChambre", "Shell/ExtensionEst/SDB/Baignoire",
@@ -219,13 +220,20 @@ func _add_world_collision(node: Node3D) -> void:
 ## Enveloppe monde d'un meuble édité. Sert à aligner le gameplay sur la scène,
 ## même si ses assets sont déplacés ou redimensionnés plus tard dans l'éditeur.
 func _world_bounds(node: Node3D) -> AABB:
-	var bounds := AABB()
-	var first := true
+	var minimum := Vector3(1e9, 1e9, 1e9)
+	var maximum := Vector3(-1e9, -1e9, -1e9)
+	var found := false
 	for mi in _collect_meshes(node):
-		var part: AABB = mi.global_transform * mi.mesh.get_aabb()
-		bounds = part if first else bounds.merge(part)
-		first = false
-	return bounds
+		var local_box := mi.mesh.get_aabb()
+		var world_transform := mi.global_transform
+		for x in [local_box.position.x, local_box.end.x]:
+			for y in [local_box.position.y, local_box.end.y]:
+				for z in [local_box.position.z, local_box.end.z]:
+					var point: Vector3 = world_transform * Vector3(x, y, z)
+					minimum = Vector3(minf(minimum.x, point.x), minf(minimum.y, point.y), minf(minimum.z, point.z))
+					maximum = Vector3(maxf(maximum.x, point.x), maxf(maximum.y, point.y), maxf(maximum.z, point.z))
+					found = true
+	return AABB(minimum, maximum - minimum) if found else AABB()
 
 
 func _surface_point(support_path: String, height := 0.0) -> Vector3:
@@ -273,6 +281,9 @@ func _container_part(support_path: String, part_name: String, cname: String,
 	c._mat_hover = hover
 
 	var local_bounds := _bounds_in_container(part, c)
+	if mode == InteractiveContainer.Mode.SLIDE:
+		# Ne jamais extraire complètement le tiroir de sa carcasse.
+		c.open_distance = minf(distance, local_bounds.size.z * c.scale.z * 0.75)
 	c.content_offset = local_bounds.get_center() + (
 		Vector3(0.0, 0.08, 0.0) if mode == InteractiveContainer.Mode.SLIDE
 		else Vector3(0.0, 0.0, -0.15)
@@ -301,19 +312,23 @@ func _find_named_mesh(node: Node, part_name: String) -> MeshInstance3D:
 
 
 func _bounds_in_container(part: Node3D, container: Node3D) -> AABB:
-	var bounds := AABB()
-	var first := true
+	var minimum := Vector3(1e9, 1e9, 1e9)
+	var maximum := Vector3(-1e9, -1e9, -1e9)
 	var stack: Array[Node] = [part]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		if current is MeshInstance3D and current.mesh != null:
 			var relative: Transform3D = container.global_transform.affine_inverse() * (current as MeshInstance3D).global_transform
-			var piece: AABB = relative * current.mesh.get_aabb()
-			bounds = piece if first else bounds.merge(piece)
-			first = false
+			var local_box: AABB = current.mesh.get_aabb()
+			for x in [local_box.position.x, local_box.end.x]:
+				for y in [local_box.position.y, local_box.end.y]:
+					for z in [local_box.position.z, local_box.end.z]:
+						var point: Vector3 = relative * Vector3(x, y, z)
+						minimum = Vector3(minf(minimum.x, point.x), minf(minimum.y, point.y), minf(minimum.z, point.z))
+						maximum = Vector3(maxf(maximum.x, point.x), maxf(maximum.y, point.y), maxf(maximum.z, point.z))
 		for child in current.get_children():
 			stack.append(child)
-	return bounds
+	return AABB(minimum, maximum - minimum)
 
 
 ## Place la façade interactive sur la face avant réelle du meuble Kenney.

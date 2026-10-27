@@ -36,18 +36,23 @@ func _layout_screen() -> void:
 
 
 func _world_bounds(node: Node3D) -> AABB:
-	var bounds := AABB()
-	var first := true
+	var minimum := Vector3(1e9, 1e9, 1e9)
+	var maximum := Vector3(-1e9, -1e9, -1e9)
 	var stack: Array[Node] = [node]
 	while not stack.is_empty():
 		var current: Node = stack.pop_back()
 		if current is MeshInstance3D and current.mesh != null:
-			var part: AABB = current.global_transform * current.mesh.get_aabb()
-			bounds = part if first else bounds.merge(part)
-			first = false
+			var local_box: AABB = current.mesh.get_aabb()
+			var world_transform: Transform3D = current.global_transform
+			for x in [local_box.position.x, local_box.end.x]:
+				for y in [local_box.position.y, local_box.end.y]:
+					for z in [local_box.position.z, local_box.end.z]:
+						var point: Vector3 = world_transform * Vector3(x, y, z)
+						minimum = Vector3(minf(minimum.x, point.x), minf(minimum.y, point.y), minf(minimum.z, point.z))
+						maximum = Vector3(maxf(maximum.x, point.x), maxf(maximum.y, point.y), maxf(maximum.z, point.z))
 		for child in current.get_children():
 			stack.append(child)
-	return bounds
+	return AABB(minimum, maximum - minimum)
 
 
 func on_pointed() -> void:
