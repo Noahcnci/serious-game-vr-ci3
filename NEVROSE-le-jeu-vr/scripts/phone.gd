@@ -69,6 +69,7 @@ var _messages_data: Array[Dictionary] = []
 # Tweens d'animation
 var _flash_tween: Tween = null
 var _transition_tween: Tween = null
+var _haptics_ready := false
 
 
 func _ready() -> void:
@@ -380,6 +381,7 @@ func setup_pocket(left_hand: Node3D, right_hand: Node3D, xr_camera: Node3D) -> v
 		_pocket_parent = _xr_camera.get_parent()
 
 	_apply_pocket_state(false)
+	_haptics_ready = true
 
 
 # Bascule entre la poche et la main gauche
@@ -395,7 +397,8 @@ func _apply_pocket_state(animate: bool) -> void:
 	if is_in_hand:
 		# Passage en main gauche
 		visible = true
-		_trigger_haptic("action_click", 1.0, 0.35, 0.15)
+		if animate:
+			_trigger_haptic(0.35, 0.15)
 
 		# Détermine si on est en VR avec manette gauche trackée ou en bureau/fallback
 		var target_parent: Node3D = _left_hand
@@ -424,7 +427,8 @@ func _apply_pocket_state(animate: bool) -> void:
 			scale = Vector3.ONE
 	else:
 		# Rangement dans la poche (hanche gauche)
-		_trigger_haptic("action_click", 0.7, 0.25, 0.12)
+		if animate:
+			_trigger_haptic(0.25, 0.12)
 		var target_parent: Node3D = _pocket_parent if _pocket_parent else (_xr_camera.get_parent() if _xr_camera else null)
 
 		if target_parent and get_parent() != target_parent:
@@ -468,7 +472,7 @@ func receive_message(text: String, is_alert: bool = false) -> void:
 	_flash_header(is_alert)
 
 	# Fait vibrer la manette gauche
-	_trigger_haptic("action_click", 1.0, 0.3, 0.2)
+	_trigger_haptic(0.3, 0.2)
 
 	# Joue le carillon de notification Messenger
 	var main_node = get_tree().get_first_node_in_group("main") if get_tree() else null
@@ -568,11 +572,14 @@ func update_timer(time_str: String, sanity: float) -> void:
 # ---------------------------------------------------------------------------
 # Vibration haptique sécurisée
 # ---------------------------------------------------------------------------
-func _trigger_haptic(action_name: String, frequency: float, amplitude: float, duration_sec: float) -> void:
-	if not _left_hand:
+func _trigger_haptic(amplitude: float, duration_sec: float) -> void:
+	if not _haptics_ready or not (_left_hand is XRController3D):
 		return
-	if _left_hand.has_method(&"trigger_haptic_pulse"):
-		# Tente l'action spécifiée, puis l'action standard OpenXR "haptic"
-		_left_hand.trigger_haptic_pulse(action_name, frequency, amplitude, duration_sec, 0.0)
-		if action_name != "haptic":
-			_left_hand.trigger_haptic_pulse("haptic", frequency, amplitude, duration_sec, 0.0)
+	var controller := _left_hand as XRController3D
+	if not controller.get_is_active():
+		return
+	var xr_interface := XRServer.find_interface("OpenXR")
+	if xr_interface == null or not xr_interface.is_initialized():
+		return
+	xr_interface.trigger_haptic_pulse(&"haptic", controller.tracker, 0.0,
+		clampf(amplitude, 0.0, 1.0), maxf(duration_sec, 0.01), 0.0)

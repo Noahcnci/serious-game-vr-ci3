@@ -611,7 +611,7 @@ func _tick_interaction_ray() -> void:
 			center_dot.color = Color(1, 1, 1, 0.65)
 
 
-func interact() -> void:
+func interact(source_hand: XRController3D = null) -> void:
 	if game_over:
 		_restart()
 		return
@@ -630,13 +630,20 @@ func interact() -> void:
 	# 3) Objet pointé au rayon (priorité) → déjà résolu dans _pointed.
 	if _pointed != null and is_instance_valid(_pointed) and _pointed.has_method(&"interact"):
 		var key_ref: KeyObject = _held_key if _held_key else null
+		var was_in_lobby := not game_started
 		_pointed.interact(key_ref)
+		if was_in_lobby:
+			return # start_game() fournit déjà son retour haptique.
+		_pulse_haptics(0.25, 0.08, source_hand)
 		return
 	# 4) Proximité : on cherche un conteneur/pilule interactif près de la main.
 	var near := _nearest_interactable()
 	if near != null:
 		var key_ref2: KeyObject = _held_key if _held_key else null
+		var was_in_lobby := not game_started
 		near.interact(key_ref2)
+		if not was_in_lobby:
+			_pulse_haptics(0.25, 0.08, source_hand)
 
 
 # Retourne l'interactable le plus proche d'une main (gâchette), dans un rayon
@@ -685,6 +692,7 @@ func _pickup_key(key: KeyObject) -> void:
 	key.rotation = Vector3(PI / 2, 0, 0)
 	_log("GAME", "clé ramassée")
 	_update_chat("Tu as une clé. Elle sert à quelque chose…")
+	_pulse_haptics(0.35, 0.10, right_hand)
 
 
 # Ramasse une pilule (GDD §5.1) — elle suit la main, le joueur la porte à la
@@ -704,6 +712,7 @@ func pickup_pill(pill: Dose) -> void:
 	pill.rotation = Vector3(PI / 2, 0, 0)
 	_log("GAME", "pilule saisie — porte-la à ta bouche et gâchette")
 	_update_chat("Tu l'as. Porte-la à ta bouche. Gâchette = avaler.")
+	_pulse_haptics(0.40, 0.10, right_hand)
 
 
 ## Appelé chaque frame pour vérifier si la pilule est dans la zone bouche
@@ -751,6 +760,7 @@ func _on_container_unlocked_by_key(container: Node3D) -> void:
 	_consume_key()
 	_log("GAME", "déverrouillé par clé : %s" % container.name)
 	_update_chat("La clé tourne dans le silence. Il n'a rien entendu.")
+	_pulse_haptics(0.30, 0.10)
 
 
 # Round 3 : un mimic mobile a atteint le joueur (présence oppressante).
@@ -902,9 +912,22 @@ func _restart() -> void:
 	_update_chat("Encore une chance. Trouve la pilule. Il n'y a pas de sortie.")
 
 
-func _pulse_haptics() -> void:
-	if xr_active:
-		right_hand.trigger_haptic_pulse(&"haptic", 0.0, 0.25, 70.0, 0.7)
+## Impulsion courte Quest 2 : amplitude 0..1 et durée en SECONDES.
+## Sans casque ou sans manette active, aucun appel n'est envoyé au runtime.
+func _pulse_haptics(amplitude := 0.45, duration := 0.12,
+		hand: XRController3D = null) -> void:
+	if not xr_active:
+		return
+	var controllers: Array[XRController3D] = []
+	if hand != null:
+		controllers.append(hand)
+	else:
+		controllers.append(right_hand)
+		controllers.append(left_hand)
+	for controller in controllers:
+		if controller != null and controller.get_is_active():
+			xr_interface.trigger_haptic_pulse(&"haptic", controller.tracker, 0.0,
+				clampf(amplitude, 0.0, 1.0), maxf(duration, 0.01), 0.0)
 
 
 # ---------------------------------------------------------------------------
@@ -913,13 +936,13 @@ func _pulse_haptics() -> void:
 func _on_right_button_pressed(action_name: String) -> void:
 	# Gâchette index droite = interagir (ouvrir / prendre), au rayon ou au contact.
 	if action_name == &"trigger":
-		interact()
+		interact(right_hand)
 
 
 func _on_left_button_pressed(action_name: String) -> void:
 	# Gâchette index gauche = aussi interagir (symétrique, confort ambidextre).
 	if action_name == &"trigger":
-		interact()
+		interact(left_hand)
 		return
 	# Boutons X/Y ou grip gauche = sortir / ranger le smartphone
 	if action_name in [&"ax_button", &"by_button", &"grip_click", &"primary_click"]:
