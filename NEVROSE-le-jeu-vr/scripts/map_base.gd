@@ -226,8 +226,11 @@ func spawn_dose() -> void:
 	_dose.name = "Dose"
 	if spot.get("floor", false):
 		add_child(_dose)
-		_dose.position = Vector3(randf_range(-room_w / 2 + 0.6, room_w / 2 - 0.6),
-			0.09, randf_range(-room_d / 2 + 0.6, room_d / 2 - 0.6))
+		# Les spots au sol portent leur propre centre de pièce : ne pas tirer
+		# une position autour de l'origine de la map (qui changeait de pièce).
+		var center: Vector3 = spot["pos"]
+		_dose.position = center + Vector3(randf_range(-0.35, 0.35),
+			0.09, randf_range(-0.35, 0.35))
 	elif spot["container"] != null:
 		var c: InteractiveContainer = spot["container"]
 		c.dose = _dose

@@ -22,9 +22,9 @@ const SANITY_RATE_ESCALATION := 0.3 # Round 3 : +0.3 par round (dose_count)
 
 # Limites de la pièce pour le clamp de déplacement (mur = mur, zéro collision coûteuse)
 # Map 2 étendue : salon+cuisine+couloir+garage+chambre+sdb+dressing
-# x ∈ [-3.7, 10.0], z ∈ [-2.7, 5.7]
+# x ∈ [-3.7, 10.0], z ∈ [-2.7, 6.3]
 const ROOM_MIN := Vector2(-3.7, -2.7)
-const ROOM_MAX := Vector2(10.0, 5.7)
+const ROOM_MAX := Vector2(10.0, 6.3)
 
 # Lobby cosy : mêmes contrôles, mais folie et gameplay en pause.
 const LOBBY_SCENE := preload("res://scenes/lobby.tscn")

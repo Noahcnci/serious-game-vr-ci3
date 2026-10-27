@@ -84,6 +84,20 @@ func _initialize() -> void:
 	_assert(apt.get_node_or_null("MugMimic") != null, "B: mimic statique présent (round 1)")
 	_assert(apt.get_node_or_null("SideTableMimic") != null, "B: 2e mimic statique présent (table d'appoint)")
 	_assert(apt.mimics.size() >= 2, "B: au moins 2 mimics dans la map : %d" % apt.mimics.size())
+	_assert(apt.get_node_or_null("Extension") == null, "B: ancien runtime Extension absent")
+	_assert(apt.get_node_or_null("Shell/ExtensionEst") != null, "B: extension éditée présente")
+	var chemins_extension := [
+		"Shell/ExtensionEst/Chambre/LitDouble",
+		"Shell/ExtensionEst/Chambre/Bureau",
+		"Shell/ExtensionEst/Garage/LaveLinge",
+		"Shell/ExtensionEst/SDB/Baignoire",
+		"Shell/ExtensionEst/Dressing/Armoire1",
+	]
+	for chemin in chemins_extension:
+		var meuble := apt.get_node_or_null(chemin) as Node3D
+		_assert(meuble != null, "B: meuble présent : %s" % chemin)
+		if meuble != null:
+			_assert(is_equal_approx(meuble.scale.x, meuble.scale.y) and is_equal_approx(meuble.scale.x, meuble.scale.z), "B: échelle uniforme : %s" % chemin)
 
 	# --- C : montée de la schizo ---
 	var s0: float = main.sanity

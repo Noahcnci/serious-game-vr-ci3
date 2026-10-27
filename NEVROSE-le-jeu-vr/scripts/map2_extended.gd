@@ -1,19 +1,10 @@
 class_name Map2Extended
 extends MapBase
-## Map 2 étendue : salon + cuisine (existant) + couloir, garage, chambre,
-## salle de bain, dressing (nouvelles pièces).
+## Map unique : salon, cuisine, couloir, garage, chambre, SDB et dressing.
 ##
-## La coquille existante vient de scenes/map2_extended.tscn (ancienne map 2
-## living, conservée comme unique scène de la map).
-## Les nouvelles pièces sont construites ici procéduralement :
-##   - Couloir : murs/sol/plafond + portes vers les nouvelles pièces.
-##   - Garage : béton, établi, lave-linge, cartons, conteneur FORCEABLE.
-##   - Chambre : lit, bureau, bibliothèque, conteneurs KEY + NONE.
-##   - SDB : sanitaires, armoire de toilette verrouillée KEY.
-##   - Dressing : penderie, commode, conteneur FORCEABLE.
-##
-## Le gameplay (clés, mimics, spawns de dose) est rétrofitté dans la pièce existante
-## ET ajouté dans les nouvelles pièces.
+## scenes/map2_extended.tscn est la SEULE source de géométrie et de mobilier.
+## Ce script ajoute uniquement le gameplay : conteneurs alignés sur les meubles,
+## clés, mimics et spawns de dose calculés depuis leurs enveloppes réelles.
 
 const SCENE_SHELL := "res://scenes/map2_extended.tscn"
 const FURN := "res://assets/kenney/furniture/"
@@ -168,16 +159,71 @@ func _place_quaternius(parent: Node, fbx_name: String, pos: Vector3, rot_y := 0.
 # ---------------------------------------------------------------------------
 # EXTENSION : couloir + 4 nouvelles pièces
 # ---------------------------------------------------------------------------
-func _build_extension() -> void:
-	var root := Node3D.new()
-	root.name = "Extension"
-	add_child(root)
+## Enveloppe monde d'un meuble édité. Sert à aligner le gameplay sur la scène,
+## même si ses assets sont déplacés ou redimensionnés plus tard dans l'éditeur.
+func _world_bounds(node: Node3D) -> AABB:
+	var bounds := AABB()
+	var first := true
+	for mi in _collect_meshes(node):
+		var part: AABB = mi.global_transform * mi.mesh.get_aabb()
+		bounds = part if first else bounds.merge(part)
+		first = false
+	return bounds
 
-	_build_corridor(root)
-	_build_garage(root)
-	_build_chambre(root)
-	_build_sdb(root)
-	_build_dressing(root)
+
+func _surface_point(support_path: String, height := 0.0) -> Vector3:
+	var support := get_node_or_null(support_path) as Node3D
+	if support == null:
+		push_warning("Map2Extended: support introuvable " + support_path)
+		return Vector3.ZERO
+	var bounds := _world_bounds(support)
+	var center := bounds.get_center()
+	return Vector3(center.x, bounds.end.y + height, center.z)
+
+
+## Place la façade interactive sur la face avant réelle du meuble Kenney.
+## Le +Z local des assets correspond à leur face avant, y compris après rotation.
+func _container_front(support_path: String, cname: String,
+		mode: InteractiveContainer.Mode, lock_type: InteractiveContainer.LockType,
+		front_size: Vector3, mat: Material, height_ratio := 0.5,
+		slide_distance := 0.35) -> InteractiveContainer:
+	var support := get_node_or_null(support_path) as Node3D
+	if support == null:
+		push_error("Map2Extended: conteneur sans support " + support_path)
+		return null
+	var bounds := _world_bounds(support)
+	var normal: Vector3 = support.global_transform.basis.z
+	normal.y = 0.0
+	normal = normal.normalized()
+	var depth := absf(normal.x) * bounds.size.x + absf(normal.z) * bounds.size.z
+	var pos := bounds.get_center() + normal * (depth * 0.5 + 0.02)
+	pos.y = bounds.position.y + bounds.size.y * height_ratio
+	var axis := normal if mode == InteractiveContainer.Mode.SLIDE else Vector3.ZERO
+	var c := _make_container(self, cname, mode, pos, axis, slide_distance, 115.0,
+		lock_type, front_size, mat)
+	c.rotation.y = atan2(normal.x, normal.z)
+	c._closed_rot_y = c.rotation.y
+	return c
+
+
+## La géométrie des nouvelles pièces vit uniquement dans map2_extended.tscn.
+## Cette fonction ne rajoute que le gameplay, jamais une seconde extension.
+func _build_extension() -> void:
+	_container_front("Shell/ExtensionEst/Garage/Etabli", "GarageDrawer",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.NONE,
+		Vector3(0.45, 0.16, 0.03), _mat_metal, 0.72, 0.42)
+	_container_front("Shell/ExtensionEst/Chambre/TableNuit", "NightstandDrawer",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY,
+		Vector3(0.4, 0.14, 0.03), _mat_bois, 0.65, 0.35)
+	_container_front("Shell/ExtensionEst/Chambre/EtagereChambre", "BookcaseDoor",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.NONE,
+		Vector3(0.6, 0.8, 0.03), _mat_meuble, 0.35)
+	_container_front("Shell/ExtensionEst/SDB/Lavabo", "SDBCabinet",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.KEY,
+		Vector3(0.45, 0.55, 0.03), _mat_meuble, 0.42)
+	_container_front("Shell/ExtensionEst/Dressing/Armoire1", "DresserDrawer",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.FORCEABLE,
+		Vector3(0.42, 1.1, 0.03), _mat_bois, 0.5)
 
 
 # ---------------------------------------------------------------------------
@@ -478,30 +524,15 @@ func _build_dressing(parent: Node3D) -> void:
 # GAMEPLAY rétrofit (pièce existante)
 # ---------------------------------------------------------------------------
 func _build_existing_gameplay() -> void:
-	# Les conteneurs de la pièce existante (salon/cuisine, dans le .tscn)
-	# sont recréés ici pour qu'ils soient dans le même arbre que la map étendue
-	# Tiroir cuisine verrouillé par clé
-	_make_container(self, "KitchenDrawerKey",
-		InteractiveContainer.Mode.SLIDE,
-		Vector3(-2.1, 0.36, -2.44), Vector3.BACK, 0.42, 115.0,
-		InteractiveContainer.LockType.KEY,
-		Vector3(0.45, 0.16, 0.03), _mat_bois)
-
-	# Porte frigo verrouillée par clé
-	var fridge := _make_container(self, "FridgeDoor",
-		InteractiveContainer.Mode.ROTATE,
-		Vector3(-3.70, 0.83, -1.70), Vector3.ZERO, 0.0, 115.0,
-		InteractiveContainer.LockType.KEY,
-		Vector3(0.55, 1.50, 0.04), _mat_metal)
-	fridge.front_mesh.position = Vector3(0.28, 0.0, 0.02)
-
-	# Placard verrouillé par force
-	var closet := _make_container(self, "ClosetDoor",
-		InteractiveContainer.Mode.ROTATE,
-		Vector3(3.0, 0.52, -1.22), Vector3.ZERO, 0.0, 115.0,
-		InteractiveContainer.LockType.FORCEABLE,
-		Vector3(0.65, 0.95, 0.03), _mat_meuble)
-	closet.front_mesh.position = Vector3(0.33, 0.0, 0.015)
+	_container_front("Shell/kitchenCabinetDrawer", "KitchenDrawerKey",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY,
+		Vector3(0.45, 0.16, 0.03), _mat_bois, 0.72, 0.42)
+	_container_front("Shell/kitchenFridge", "FridgeDoor",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.KEY,
+		Vector3(0.55, 1.50, 0.03), _mat_metal, 0.5)
+	_container_front("Shell/sideTableDrawers", "ClosetDoor",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.FORCEABLE,
+		Vector3(0.65, 0.60, 0.03), _mat_meuble, 0.5)
 
 
 # ---------------------------------------------------------------------------
@@ -512,7 +543,7 @@ func _place_mimics() -> void:
 	var fake1 := Mimic.new()
 	fake1.name = "MugMimic"
 	add_child(fake1)
-	fake1.position = Vector3(0.30, 0.57, 1.05)
+	fake1.position = _surface_point("Shell/table", 0.02) + Vector3(0.15, 0.0, -0.15)
 	_place_furniture(fake1, FOOD + "cup-tea.glb", Vector3.ZERO, 0.0, 1.0)
 	var cs1 := CollisionShape3D.new()
 	var bs1 := BoxShape3D.new()
@@ -526,7 +557,7 @@ func _place_mimics() -> void:
 	var fake2 := Mimic.new()
 	fake2.name = "SideTableMimic"
 	add_child(fake2)
-	fake2.position = Vector3(-3.55, 0.41, -0.05)
+	fake2.position = _surface_point("Shell/sideTableDrawers", 0.02) + Vector3(-0.2, 0.0, 0.0)
 	_place_furniture(fake2, FOOD + "cup-tea.glb", Vector3.ZERO, 30.0, 1.0)
 	var cs2 := CollisionShape3D.new()
 	var bs2 := BoxShape3D.new()
@@ -541,68 +572,36 @@ func _place_mimics() -> void:
 # Spawns de dose (GDD §5.1)
 # ---------------------------------------------------------------------------
 func _register_spawn_spots() -> void:
-	# Conteneurs KEY de la pièce existante
+	# Chaque conteneur reste un spawn valide ; les portes utilisent un point
+	# légèrement derrière leur façade, les tiroirs utilisent leur repère local.
 	for c in containers:
-		if c.name.begins_with("KitchenDrawer") and c.lock_type == InteractiveContainer.LockType.KEY:
-			_spawn_spots.append({"pos": Vector3.ZERO, "container": c})
-	for c in containers:
-		if c.name.begins_with("FridgeDoor"):
-			_spawn_spots.append({"pos": Vector3(-3.44, 0.83, -1.65), "container": c})
+		_spawn_spots.append({"pos": c.to_global(Vector3(0.0, 0.0, -0.22)), "container": c})
 
-	# Surfaces ouvertes pièce existante
-	_spawn_spots.append({"pos": Vector3(-0.55, 0.61, -2.70), "container": null}) # toaster
-	_spawn_spots.append({"pos": Vector3(0.60, 0.57, 1.20), "container": null}) # table basse
-	_spawn_spots.append({"pos": Vector3(0.60, 0.96, 1.90), "container": null}) # canapé
-	_spawn_spots.append({"pos": Vector3(-3.55, 0.41, -0.20), "container": null}) # table d'appoint
-	_spawn_spots.append({"pos": Vector3(3.62, 2.22, 0.00), "container": null}) # bibliothèque
-	_spawn_spots.append({"pos": Vector3.ZERO, "container": null, "floor": true}) # sol map 2
+	var surfaces := [
+		"Shell/kitchenCabinetDrawer", "Shell/table", "Shell/loungeSofa",
+		"Shell/sideTableDrawers", "Shell/ExtensionEst/Garage/Etabli",
+		"Shell/ExtensionEst/Chambre/LitDouble", "Shell/ExtensionEst/Chambre/Bureau",
+		"Shell/ExtensionEst/SDB/Lavabo", "Shell/ExtensionEst/Dressing/Armoire2",
+	]
+	for path in surfaces:
+		_spawn_spots.append({"pos": _surface_point(path, 0.09), "container": null})
 
-	# --- Nouvelles pièces ---
-	# Garage : tiroir établi (FORCEABLE→NONE, pos ignorée : tiroir coulissant)
-	for c in containers:
-		if c.name.begins_with("GarageDrawer"):
-			_spawn_spots.append({"pos": Vector3(6.5, 0.70, -1.5), "container": c})
-	# Chambre : tiroir table nuit (KEY)
-	for c in containers:
-		if c.name.begins_with("NightstandDrawer"):
-			_spawn_spots.append({"pos": Vector3(5.7, 0.5, 5.4), "container": c})
-	# Chambre : placard bibliothèque (NONE)
-	for c in containers:
-		if c.name.begins_with("BookcaseDoor"):
-			_spawn_spots.append({"pos": Vector3(5.55, 0.6, 3.0), "container": c})
-	# SDB : armoire toilette (KEY)
-	for c in containers:
-		if c.name.begins_with("SDBCabinet"):
-			_spawn_spots.append({"pos": Vector3(5.55, 1.0, 3.0), "container": c})
-	# Dressing : tiroir commode (FORCEABLE)
-	for c in containers:
-		if c.name.begins_with("DresserDrawer"):
-			_spawn_spots.append({"pos": Vector3(8.6, 0.5, 4.4), "container": c})
-
-	# Surfaces ouvertes nouvelles pièces (y = plateau réel à l'échelle corrigée)
-	_spawn_spots.append({"pos": Vector3(6.5, 0.90, -1.5), "container": null}) # établi garage
-	_spawn_spots.append({"pos": Vector3(7.4, 0.62, 5.0), "container": null}) # lit chambre
-	_spawn_spots.append({"pos": Vector3(7.5, 0.75, 2.8), "container": null}) # bureau chambre
-	_spawn_spots.append({"pos": Vector3(5.8, 0.90, 4.5), "container": null}) # lavabo SDB
-	_spawn_spots.append({"pos": Vector3(9.8, 0.66, 3.0), "container": null}) # étagère dressing
-	_spawn_spots.append({"pos": Vector3(4.675, 0.0, 0.0), "container": null, "floor": true}) # sol couloir
-	_spawn_spots.append({"pos": Vector3(7.275, 0.0, -0.5), "container": null, "floor": true}) # sol garage
-	_spawn_spots.append({"pos": Vector3(6.775, 0.0, 4.0), "container": null, "floor": true}) # sol chambre
+	for pos in [Vector3.ZERO, Vector3(7.3, 0.0, 2.0),
+			Vector3(7.3, 0.0, 4.6), Vector3(6.3, 0.0, -0.6)]:
+		_spawn_spots.append({"pos": pos, "container": null, "floor": true})
 
 
 func _key_spots() -> Array[Vector3]:
-	return [
-		Vector3(0.60, 0.57, 1.20),   # table basse
-		Vector3(-0.55, 0.61, -2.70), # plan de travail
-		Vector3(3.62, 2.22, 0.00),   # bibliothèque
-		Vector3(-3.55, 0.41, -0.20), # table d'appoint
-		Vector3(0.60, 0.96, 1.90),   # canapé
-		Vector3(6.5, 0.90, -1.5),    # établi garage
-		Vector3(7.5, 0.75, 2.8),     # bureau chambre
-		Vector3(5.8, 0.90, 4.5),     # lavabo SDB
-		Vector3(9.8, 0.66, 3.0),     # étagère dressing
-		Vector3(4.675, 0.0, 0.0),    # sol couloir
-	]
+	var spots: Array[Vector3] = []
+	for path in [
+		"Shell/table", "Shell/kitchenCabinetDrawer", "Shell/sideTableDrawers",
+		"Shell/loungeSofa", "Shell/ExtensionEst/Garage/Etabli",
+		"Shell/ExtensionEst/Chambre/LitDouble", "Shell/ExtensionEst/Chambre/Bureau",
+		"Shell/ExtensionEst/SDB/Lavabo", "Shell/ExtensionEst/Dressing/Armoire2",
+	]:
+		spots.append(_surface_point(path))
+	spots.append(Vector3(7.3, 0.0, 2.0)) # sol du couloir
+	return spots
 
 
 # ---------------------------------------------------------------------------
