@@ -31,6 +31,7 @@ var _closed_rot_y: float
 var area: Area3D
 var front_mesh: MeshInstance3D
 var dose: Node3D = null
+var content_offset := Vector3.ZERO
 var _mat_normal: Material
 var _mat_hover: Material
 var _mat_locked: Material ## Surbrillance rouge (verrouillé)
@@ -53,7 +54,7 @@ func _ready() -> void:
 	if is_locked:
 		_mat_locked = _make_locked_mat()
 		if front_mesh:
-			front_mesh.material_override = _mat_locked
+			front_mesh.material_overlay = _mat_locked
 
 
 func _make_locked_mat() -> Material:
@@ -69,16 +70,16 @@ func on_pointed(holding_key: Node3D = null) -> void:
 		if is_locked and _mat_locked:
 			# Si le joueur tient la bonne clé → surbrillance verte
 			if holding_key == required_key:
-				front_mesh.material_override = _make_unlock_mat()
+				front_mesh.material_overlay = _make_unlock_mat()
 			else:
-				front_mesh.material_override = _mat_locked
+				front_mesh.material_overlay = _mat_locked
 		elif _mat_hover:
-			front_mesh.material_override = _mat_hover
+			front_mesh.material_overlay = _mat_hover
 
 
 func on_unpointed() -> void:
-	if front_mesh and _mat_normal:
-		front_mesh.material_override = _mat_normal
+	if front_mesh:
+		front_mesh.material_overlay = _mat_normal
 
 
 ## Interaction principale (grip / trigger).
@@ -99,8 +100,21 @@ func interact(holding_key: Node3D = null) -> void:
 	else:
 		var target_y := _closed_rot_y + deg_to_rad(rotate_angle if is_open else 0.0)
 		_tween.tween_property(self, "rotation:y", target_y, OPEN_TIME)
-	if is_open and dose:
-		_reveal_dose()
+	if dose:
+		if is_open:
+			_reveal_dose()
+		else:
+			_hide_dose()
+
+
+## Fermeture déterministe pour le restart : aucune dépendance à un tween actif.
+func close_now() -> void:
+	if _tween and _tween.is_valid():
+		_tween.kill()
+	is_open = false
+	position = _closed_pos
+	rotation.y = _closed_rot_y
+	_hide_dose()
 
 
 func _try_unlock(holding_key: Node3D) -> void:
@@ -122,8 +136,8 @@ func _try_unlock(holding_key: Node3D) -> void:
 
 func _unlock() -> void:
 	is_locked = false
-	if front_mesh and _mat_normal:
-		front_mesh.material_override = _mat_normal
+	if front_mesh:
+		front_mesh.material_overlay = _mat_normal
 	is_open = false
 	interact()
 
@@ -134,7 +148,7 @@ func _flash_locked() -> void:
 	# MeshInstance3D) pour signaler "verrouillé, il faut une clé".
 	if not front_mesh or not _mat_locked:
 		return
-	var mat := front_mesh.material_override as StandardMaterial3D
+	var mat := front_mesh.material_overlay as StandardMaterial3D
 	if mat == null:
 		return
 	var base: Color = mat.albedo_color
@@ -159,3 +173,12 @@ func _reveal_dose() -> void:
 	if dose is Area3D:
 		dose.set_deferred("monitoring", true)
 		dose.set_deferred("monitorable", true)
+
+
+func _hide_dose() -> void:
+	if not dose:
+		return
+	dose.visible = false
+	if dose is Area3D:
+		dose.set_deferred("monitoring", false)
+		dose.set_deferred("monitorable", false)

@@ -26,6 +26,7 @@
 [ext_resource type="PackedScene" uid="uid://ciw5cxobvbm3w" path="res://assets/KloWorks_Healthy&Junk_Food_Pack/KloWorks_Healthy&Junk_Food_Kit/Gltf/Healthy_Food/Salmon.glb" id="26_yydf7"]
 [ext_resource type="PackedScene" uid="uid://et7se7hknemq" path="res://assets/KloWorks_Healthy&Junk_Food_Pack/KloWorks_Healthy&Junk_Food_Kit/Gltf/Junk_Food/Pizza.glb" id="27_35e0n"]
 [ext_resource type="PackedScene" uid="uid://3711iglko6ps" path="res://assets/Gun&Knife/low_poly_knife.glb" id="30_r0jqq"]
+[ext_resource type="PackedScene" uid="uid://5pusp5rliakq" path="res://assets/kenney/furniture/bathroomCabinetDrawer.glb" id="54_7a13y"]
 [ext_resource type="Script" uid="uid://cndpbd46syf2d" path="res://scripts/rats.gd" id="55_hxs6d"]
 [ext_resource type="PackedScene" uid="uid://dinh7mb6idk63" path="res://assets/kenney/furniture/bathtub.glb" id="mob_bathtub"]
 [ext_resource type="PackedScene" uid="uid://lku2n088k5yy" path="res://assets/kenney/furniture/bedDouble.glb" id="mob_bed"]
@@ -760,9 +761,6 @@ transform = Transform3D(-1.9, 0, -1.6610328e-07, 0, 1.9, 0, 1.6610328e-07, 0, -1
 [node name="ChaiseBureau" parent="ExtensionEst/Chambre" unique_id=1502538878 instance=ExtResource("mob_chairdesk")]
 transform = Transform3D(1.4359066, 0, 0.43378818, 0, 1.5, 0, -0.43378818, 0, 1.4359066, 6.9426, 0, 0.4987)
 
-[node name="EtagereChambre" parent="ExtensionEst/Chambre" unique_id=897385938 instance=ExtResource("mob_bookclosed")]
-transform = Transform3D(-9.616505e-08, 0, -2.2, 0, 2.2, 0, 2.2, 0, -9.616505e-08, 7.79625, 0, -0.54)
-
 [node name="TapisChambre" parent="ExtensionEst/Chambre" unique_id=1271591647 instance=ExtResource("mob_rugrect")]
 transform = Transform3D(-1.1999865, 0, -0.005717628, 0, 1.2, 0, 0.005717628, 0, -1.1999865, 7.357, 0.01, -0.8386)
 
@@ -790,6 +788,9 @@ omni_range = 3.5
 
 [node name="PlafonnierChambre" parent="ExtensionEst/Chambre" unique_id=1353665129 instance=ExtResource("mob_plafonnier")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.3, 2.68, -0.6)
+
+[node name="EtagereChambre" parent="ExtensionEst/Chambre" unique_id=776189669 instance=ExtResource("mob_bookdoors")]
+transform = Transform3D(-9.616505e-08, 0, -2.2, 0, 2.2, 0, 2.2, 0, -9.616505e-08, 7.79625, 0, -0.54)
 
 [node name="SDB" type="Node3D" parent="ExtensionEst" unique_id=2062315239]
 
@@ -841,6 +842,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.3, 2.68, 0.4)
 transform = Transform3D(0.232558, 0, 0, 0, 1, 0, 0, 0, 1, 11.3, 1.35, 1.4)
 material_override = SubResource("mat_mur")
 mesh = SubResource("mesh_walln")
+
+[node name="MeubleSDB" parent="ExtensionEst/SDB" unique_id=517954338 instance=ExtResource("54_7a13y")]
+transform = Transform3D(-1.5, 0, -1.3113416e-07, 0, 1.5, 0, 1.3113416e-07, 0, -1.5, 11.6, -0.08736, 0.645)
 
 [node name="Dressing" type="Node3D" parent="ExtensionEst" unique_id=433758910]
 

@@ -236,7 +236,7 @@ func spawn_dose() -> void:
 		c.dose = _dose
 		if c.mode == InteractiveContainer.Mode.SLIDE:
 			c.add_child(_dose)
-			_dose.position = Vector3(0, 0.12, -0.05)
+			_dose.position = c.content_offset
 		else:
 			add_child(_dose)
 			_dose.position = spot["pos"]
@@ -259,5 +259,4 @@ func clear_dose() -> void:
 func reset_containers() -> void:
 	clear_dose()
 	for c in containers:
-		if c.is_open:
-			c.interact()
+		c.close_now()

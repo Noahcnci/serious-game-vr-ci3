@@ -574,6 +574,8 @@ func snap_turn(direction: float) -> void:
 # Gâchette / clic = ouvrir un conteneur ou prendre la pilule.
 # ---------------------------------------------------------------------------
 func _tick_interaction_ray() -> void:
+	if not is_instance_valid(_pointed):
+		_pointed = null
 	var from: Vector3
 	var dir: Vector3
 	if xr_active:
@@ -612,6 +614,8 @@ func _tick_interaction_ray() -> void:
 
 
 func interact(source_hand: XRController3D = null) -> void:
+	if not is_instance_valid(_pointed):
+		_pointed = null
 	if game_over:
 		_restart()
 		return
@@ -681,13 +685,15 @@ func _nearest_interactable() -> Node:
 # Ramasse une clé (GDD §5.6) — elle reste "dans la main" (vivante + visible)
 # jusqu'à ce qu'elle soit utilisée sur son conteneur.
 func _pickup_key(key: KeyObject) -> void:
+	if not is_instance_valid(key):
+		return
 	if _held_key:
 		_update_chat("Ta main est déjà pleine.")
 		return
 	_held_key = key
 	key.is_held = true
 	key.name = "HeldKey"
-	right_hand.add_child(key) ## remonte dans la main animée → suit le controller
+	key.reparent(right_hand) ## remonte dans la main animée → suit le controller
 	key.position = Vector3(0.0, -0.08, 0.12)
 	key.rotation = Vector3(PI / 2, 0, 0)
 	_log("GAME", "clé ramassée")
@@ -700,6 +706,8 @@ func _pickup_key(key: KeyObject) -> void:
 var _held_pill: Dose = null
 
 func pickup_pill(pill: Dose) -> void:
+	if not is_instance_valid(pill):
+		return
 	if _held_pill and is_instance_valid(_held_pill):
 		_update_chat("Tu tiens déjà une pilule.")
 		return
@@ -707,7 +715,7 @@ func pickup_pill(pill: Dose) -> void:
 	pill.is_held = true
 	pill.camera = xr_camera
 	pill.name = "HeldPill"
-	right_hand.add_child(pill)
+	pill.reparent(right_hand)
 	pill.position = Vector3(0.0, -0.06, 0.10)
 	pill.rotation = Vector3(PI / 2, 0, 0)
 	_log("GAME", "pilule saisie — porte-la à ta bouche et gâchette")

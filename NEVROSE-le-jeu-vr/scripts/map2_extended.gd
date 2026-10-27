@@ -181,6 +181,7 @@ func _build_collision_geometry() -> void:
 		"Shell/ExtensionEst/Chambre/Bureau", "Shell/ExtensionEst/Chambre/ChaiseBureau",
 		"Shell/ExtensionEst/Chambre/EtagereChambre", "Shell/ExtensionEst/SDB/Baignoire",
 		"Shell/ExtensionEst/SDB/WC", "Shell/ExtensionEst/SDB/Lavabo",
+		"Shell/ExtensionEst/SDB/MeubleSDB",
 		"Shell/ExtensionEst/Dressing/Armoire1", "Shell/ExtensionEst/Dressing/Armoire2",
 		"Shell/ExtensionEst/Dressing/PorteManteauDressing",
 		"Shell/ExtensionEst/Dressing/CartonDressing",
@@ -237,6 +238,84 @@ func _surface_point(support_path: String, height := 0.0) -> Vector3:
 	return Vector3(center.x, bounds.end.y + height, center.z)
 
 
+## Utilise une vraie partie mobile GLB : pivot, matériaux et zone d'interaction.
+func _container_part(support_path: String, part_name: String, cname: String,
+		mode: InteractiveContainer.Mode, lock_type: InteractiveContainer.LockType,
+		distance := 0.35, signed_angle := -105.0) -> InteractiveContainer:
+	var support := get_node_or_null(support_path) as Node3D
+	if support == null:
+		push_error("Map2Extended: support introuvable " + support_path)
+		return null
+	var part := _find_named_mesh(support, part_name)
+	if part == null:
+		push_error("Map2Extended: partie mobile introuvable %s dans %s" % [part_name, support_path])
+		return null
+
+	var normal: Vector3 = part.global_transform.basis.z
+	normal.y = 0.0
+	normal = normal.normalized()
+	var axis := normal if mode == InteractiveContainer.Mode.SLIDE else Vector3.ZERO
+	var c := InteractiveContainer.new(mode, axis, distance, signed_angle, lock_type)
+	c.name = cname
+	c.position = part.global_position
+	c.rotation = part.global_rotation
+	c.scale = part.global_transform.basis.get_scale()
+	add_child(c)
+	part.reparent(c, true)
+	c.front_mesh = part
+
+	var hover := StandardMaterial3D.new()
+	hover.albedo_color = Color(0.45, 0.75, 0.7, 0.25)
+	hover.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	hover.emission_enabled = true
+	hover.emission = Color(0.2, 0.6, 0.55)
+	hover.emission_energy_multiplier = 0.35
+	c._mat_hover = hover
+
+	var local_bounds := _bounds_in_container(part, c)
+	c.content_offset = local_bounds.get_center() + (
+		Vector3(0.0, 0.08, 0.0) if mode == InteractiveContainer.Mode.SLIDE
+		else Vector3(0.0, 0.0, -0.15)
+	)
+	c.area = Area3D.new()
+	c.area.name = "area"
+	var collision := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = local_bounds.size + Vector3(0.06, 0.06, 0.12)
+	collision.shape = shape
+	collision.position = local_bounds.get_center()
+	c.area.add_child(collision)
+	c.add_child(c.area)
+	containers.append(c)
+	return c
+
+
+func _find_named_mesh(node: Node, part_name: String) -> MeshInstance3D:
+	if node is MeshInstance3D and String(node.name) == part_name:
+		return node as MeshInstance3D
+	for child in node.get_children():
+		var found := _find_named_mesh(child, part_name)
+		if found != null:
+			return found
+	return null
+
+
+func _bounds_in_container(part: Node3D, container: Node3D) -> AABB:
+	var bounds := AABB()
+	var first := true
+	var stack: Array[Node] = [part]
+	while not stack.is_empty():
+		var current: Node = stack.pop_back()
+		if current is MeshInstance3D and current.mesh != null:
+			var relative: Transform3D = container.global_transform.affine_inverse() * (current as MeshInstance3D).global_transform
+			var piece: AABB = relative * current.mesh.get_aabb()
+			bounds = piece if first else bounds.merge(piece)
+			first = false
+		for child in current.get_children():
+			stack.append(child)
+	return bounds
+
+
 ## Place la façade interactive sur la face avant réelle du meuble Kenney.
 ## Le +Z local des assets correspond à leur face avant, y compris après rotation.
 func _container_front(support_path: String, cname: String,
@@ -265,21 +344,16 @@ func _container_front(support_path: String, cname: String,
 ## La géométrie des nouvelles pièces vit uniquement dans map2_extended.tscn.
 ## Cette fonction ne rajoute que le gameplay, jamais une seconde extension.
 func _build_extension() -> void:
-	_container_front("Shell/ExtensionEst/Garage/Etabli", "GarageDrawer",
-		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.NONE,
-		Vector3(0.45, 0.16, 0.03), _mat_metal, 0.72, 0.42)
-	_container_front("Shell/ExtensionEst/Chambre/TableNuit", "NightstandDrawer",
-		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY,
-		Vector3(0.4, 0.14, 0.03), _mat_bois, 0.65, 0.35)
-	_container_front("Shell/ExtensionEst/Chambre/EtagereChambre", "BookcaseDoor",
-		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.NONE,
-		Vector3(0.6, 0.8, 0.03), _mat_meuble, 0.35)
-	_container_front("Shell/ExtensionEst/SDB/Lavabo", "SDBCabinet",
-		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.KEY,
-		Vector3(0.45, 0.55, 0.03), _mat_meuble, 0.42)
-	_container_front("Shell/ExtensionEst/Dressing/Armoire1", "DresserDrawer",
-		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.FORCEABLE,
-		Vector3(0.42, 1.1, 0.03), _mat_bois, 0.5)
+	_container_part("Shell/ExtensionEst/Garage/Etabli", "drawer", "GarageDrawer",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.NONE, 0.42)
+	_container_part("Shell/ExtensionEst/Chambre/TableNuit", "drawer", "NightstandDrawer",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY, 0.35)
+	_container_part("Shell/ExtensionEst/Chambre/EtagereChambre", "doorLeft", "BookcaseDoor",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.NONE, 0.0, -105.0)
+	_container_part("Shell/ExtensionEst/SDB/MeubleSDB", "drawerTop", "SDBCabinet",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY, 0.30)
+	_container_part("Shell/ExtensionEst/Dressing/Armoire1", "doorLeft", "DresserDrawer",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.FORCEABLE, 0.0, -105.0)
 
 
 # ---------------------------------------------------------------------------
@@ -580,15 +654,12 @@ func _build_dressing(parent: Node3D) -> void:
 # GAMEPLAY rétrofit (pièce existante)
 # ---------------------------------------------------------------------------
 func _build_existing_gameplay() -> void:
-	_container_front("Shell/kitchenCabinetDrawer", "KitchenDrawerKey",
-		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY,
-		Vector3(0.45, 0.16, 0.03), _mat_bois, 0.72, 0.42)
-	_container_front("Shell/kitchenFridge", "FridgeDoor",
-		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.KEY,
-		Vector3(0.55, 1.50, 0.03), _mat_metal, 0.5)
-	_container_front("Shell/sideTableDrawers", "ClosetDoor",
-		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.FORCEABLE,
-		Vector3(0.65, 0.60, 0.03), _mat_meuble, 0.5)
+	_container_part("Shell/kitchenCabinetDrawer", "drawer", "KitchenDrawerKey",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.KEY, 0.42)
+	_container_part("Shell/kitchenFridge", "doorFridge", "FridgeDoor",
+		InteractiveContainer.Mode.ROTATE, InteractiveContainer.LockType.KEY, 0.0, -105.0)
+	_container_part("Shell/sideTableDrawers", "drawerLeft", "ClosetDoor",
+		InteractiveContainer.Mode.SLIDE, InteractiveContainer.LockType.FORCEABLE, 0.35)
 
 
 # ---------------------------------------------------------------------------
@@ -631,7 +702,7 @@ func _register_spawn_spots() -> void:
 	# Chaque conteneur reste un spawn valide ; les portes utilisent un point
 	# légèrement derrière leur façade, les tiroirs utilisent leur repère local.
 	for c in containers:
-		_spawn_spots.append({"pos": c.to_global(Vector3(0.0, 0.0, -0.22)), "container": c})
+		_spawn_spots.append({"pos": c.to_global(c.content_offset), "container": c})
 
 	var surfaces := [
 		"Shell/kitchenCabinetDrawer", "Shell/table", "Shell/loungeSofa",

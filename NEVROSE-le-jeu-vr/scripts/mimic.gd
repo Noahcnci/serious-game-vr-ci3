@@ -88,7 +88,7 @@ func on_unpointed() -> void:
 	pass
 
 
-func interact() -> void:
+func interact(_holding_key: Node3D = null) -> void:
 	if _dissolving:
 		return
 	_dissolving = true
@@ -96,5 +96,5 @@ func interact() -> void:
 	if main and main.has_method(&"on_mimic_purged"):
 		main.on_mimic_purged()
 	var tw := create_tween().set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_BACK)
-	tw.tween_property(self, "scale", Vector3.ZERO, 0.4)
+	tw.tween_property(self, "scale", Vector3.ONE * 0.001, 0.4)
 	tw.tween_callback(queue_free)

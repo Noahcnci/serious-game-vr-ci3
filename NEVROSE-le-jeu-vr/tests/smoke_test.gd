@@ -181,6 +181,53 @@ func _initialize() -> void:
 	await create_timer(0.6).timeout
 	_assert(not drawer.is_open, "E: le tiroir se referme")
 
+	# --- E+ : dissolution de la tasse mimic ---
+	var mug_mimic := apt.get_node("MugMimic") as Mimic
+	main._pointed = mug_mimic
+	var sanity_avant_mimic: float = main.sanity
+	main.interact()
+	_assert(mug_mimic._dissolving, "E+: la tasse mimic commence à se dissoudre")
+	_assert(is_equal_approx(main.sanity, sanity_avant_mimic + 6.0), "E+: purger la tasse ajoute 6 de sanity")
+	await create_timer(0.5).timeout
+	_assert(not is_instance_valid(mug_mimic), "E+: la tasse mimic est libérée après sa dissolution")
+	# Le rayon a déjà nettoyé la cible expirée : une nouvelle interaction
+	# ne doit ni la réutiliser ni appliquer une seconde pénalité.
+	var sanity_apres_mimic: float = main.sanity
+	main.interact()
+	_assert(is_equal_approx(main.sanity, sanity_apres_mimic), "E+: seconde interaction sans crash ni nouvelle pénalité")
+	main._pointed = null
+
+	# --- E+ : façades et fermeture déterministe des conteneurs ---
+	var garage_drawer := apt.get_node("GarageDrawer") as InteractiveContainer
+	var fridge_door := apt.get_node("FridgeDoor") as InteractiveContainer
+	var closet_door := apt.get_node("ClosetDoor") as InteractiveContainer
+	_assert(garage_drawer.front_mesh.name == "drawer", "E+: GarageDrawer utilise la façade drawer du GLB")
+	_assert(fridge_door.front_mesh.name == "doorFridge", "E+: FridgeDoor utilise la façade doorFridge du GLB")
+	_assert(closet_door.mode == InteractiveContainer.Mode.SLIDE, "E+: ClosetDoor fonctionne en coulissement")
+	var garage_material: Material = garage_drawer.front_mesh.material_override
+	garage_drawer.on_pointed()
+	garage_drawer.on_unpointed()
+	_assert(garage_drawer.front_mesh.material_overlay == null, "E+: la surbrillance de GarageDrawer disparaît au survol sortant")
+	_assert(garage_drawer.front_mesh.material_override == garage_material, "E+: le survol ne remplace pas le matériau de GarageDrawer")
+	# Ne pas faire fuiter une surbrillance dans les scénarios suivants.
+	garage_drawer.front_mesh.material_overlay = null
+	garage_drawer.interact()
+	garage_drawer.close_now() # Fermeture volontairement pendant le tween d'ouverture.
+	_assert(not garage_drawer.is_open, "E+: close_now ferme GarageDrawer pendant son tween")
+	_assert(garage_drawer.position.is_equal_approx(garage_drawer._closed_pos), "E+: close_now restaure la position fermée")
+	_assert(is_equal_approx(garage_drawer.rotation.y, garage_drawer._closed_rot_y), "E+: close_now restaure la rotation fermée")
+
+	# --- E+ : cooldown des notifications du téléphone ---
+	var derniere_alerte_ms: int = main.phone._last_alert_notification_ms
+	main.phone.receive_message("Test routine", false)
+	_assert(main.phone._last_alert_notification_ms == derniere_alerte_ms, "E+: un message ordinaire ne déclenche pas de notification d'alerte")
+	main.phone.receive_message("Test alerte", true)
+	var premiere_alerte_ms: int = main.phone._last_alert_notification_ms
+	_assert(premiere_alerte_ms != derniere_alerte_ms, "E+: une alerte met à jour l'horodatage de notification")
+	main.phone.receive_message("Test alerte répétée", true)
+	_assert(main.phone._last_alert_notification_ms == premiere_alerte_ms, "E+: une alerte pendant le cooldown est ignorée")
+	main.phone._last_alert_notification_ms = derniere_alerte_ms
+
 	# --- F : snap turn ---
 	var yaw0: float = main.xr_origin.rotation.y
 	main.snap_turn(1.0)

@@ -65,6 +65,8 @@ var _input_label: Label = null
 
 # Historique des messages (max 3 affichés)
 var _messages_data: Array[Dictionary] = []
+const ALERT_NOTIFICATION_COOLDOWN_MS := 20000
+var _last_alert_notification_ms := -1000000
 
 # Tweens d'animation
 var _flash_tween: Tween = null
@@ -471,10 +473,15 @@ func receive_message(text: String, is_alert: bool = false) -> void:
 	_refresh_messages_ui()
 	_flash_header(is_alert)
 
-	# Fait vibrer la manette gauche
+	# Les messages ordinaires restent silencieux. Seules les alertes critiques
+	# produisent un retour, espacé pour ne pas masquer les voix ni le jeu.
+	if not is_alert:
+		return
+	var now := Time.get_ticks_msec()
+	if now - _last_alert_notification_ms < ALERT_NOTIFICATION_COOLDOWN_MS:
+		return
+	_last_alert_notification_ms = now
 	_trigger_haptic(0.3, 0.2)
-
-	# Joue le carillon de notification Messenger
 	var main_node = get_tree().get_first_node_in_group("main") if get_tree() else null
 	if main_node and "creepy_voices" in main_node and main_node.creepy_voices and main_node.creepy_voices.has_method(&"play_notification"):
 		main_node.creepy_voices.play_notification()
